@@ -156,7 +156,6 @@ function showEmpty() {
 }
 
 let debounceTimer;
-let allDestinations = [];
 
 async function loadDestinations() {
   try {
@@ -308,7 +307,8 @@ function closeModal() {
 async function saveHotel(e) {
   e.preventDefault();
   const btn = document.getElementById('btn-save');
-  showLoading(btn, true);
+  btn.disabled = true;
+  btn.textContent = 'Đang lưu...';
 
   const id = parseInt(document.getElementById('edit-id').value);
   const payload = {
@@ -344,7 +344,8 @@ async function saveHotel(e) {
   } catch (err) {
     toast('Không thể lưu. Kiểm tra kết nối server.', 'error');
   } finally {
-    showLoading(btn, false);
+    btn.disabled = false;
+    btn.textContent = 'Lưu';
   }
 }
 

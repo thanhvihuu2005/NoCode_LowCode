@@ -41,6 +41,7 @@
 <script src="../js/components.js"></script>
 <script>
 injectAdminSidebar('automation.html');
+
 const WORKFLOWS = [
   { name: 'Cross-sell: Gợi ý khách sạn sau đặt tour', status: true, trigger: 'Webhook POST /booking/tour', runs: 48, last: '10 phút trước' },
   { name: 'Upsell: Email nâng cấp phòng', status: true, trigger: 'Webhook POST /booking/hotel', runs: 23, last: '2 giờ trước' },
@@ -65,7 +66,7 @@ function renderLogs(){
     <td class="px-5 py-3 font-mono text-xs text-slate-400">${l.id}</td>
     <td class="px-5 py-3 text-sm text-slate-700">${l.event}</td>
     <td class="px-5 py-3 text-xs text-slate-400">${l.timestamp}</td>
-    <td class="px-5 py-3"><span class="text-xs font-semibold px-2.5 py-1 rounded-full ${l.status==='success'?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-600'}">${l.status==='success'?'✅ Thành công':'❌ Lỗi'}</span></td>
+    <td class="px-5 py-3"><span class="text-xs font-semibold px-2.5 py-1 rounded-full ${(l.status==='success'||l.status==='completed')?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-600'}">${(l.status==='success'||l.status==='completed')?'✅ Thành công':'❌ Lỗi'}</span></td>
   </tr>`).join('');
 }
 function addLog(){
@@ -75,6 +76,5 @@ function addLog(){
 }
 renderWorkflows();
 renderLogs();
-}
 </script>
 </body></html>
