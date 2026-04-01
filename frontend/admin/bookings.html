@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Quản lý Đặt chỗ | TravelWise Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+<style>body{font-family:'Inter',sans-serif;}</style>
+<style>
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.badge-success{background:#d1fae5;color:#065f46}
+.badge-warning{background:#fef3c7;color:#92400e}
+.badge-error{background:#fee2e2;color:#991b1b}
+.badge-primary{background:#dbeafe;color:#1e40af}
+</style>
+</head>
+<body class="bg-slate-100">
+<div id="tw-sidebar"></div>
+<div class="ml-64">
+  <header class="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-20">
+    <h1 class="text-xl font-bold">📋 Quản lý Đặt chỗ</h1>
+    <p class="text-xs text-slate-500">Xem và cập nhật trạng thái các đơn đặt dịch vụ</p>
+  </header>
+  <main class="p-6">
+    <div id="api-banner" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-4"></div>
+    <!-- Stats -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <p class="text-xs text-slate-500 font-medium">Tổng đơn</p>
+        <p class="text-2xl font-bold text-slate-800 mt-1" id="stat-total">—</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <p class="text-xs text-slate-500 font-medium">Chờ duyệt</p>
+        <p class="text-2xl font-bold text-amber-500 mt-1" id="stat-pending">—</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <p class="text-xs text-slate-500 font-medium">Đã xác nhận</p>
+        <p class="text-2xl font-bold text-blue-600 mt-1" id="stat-confirmed">—</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <p class="text-xs text-slate-500 font-medium">Hoàn thành</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-1" id="stat-completed">—</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 mb-4 flex gap-3 flex-wrap">
+      <input id="search" placeholder="🔍 Tìm mã đặt, tên khách..." oninput="debounceLoad()" class="flex-1 min-w-[180px] border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+      <select id="status" onchange="loadBookings()" class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+        <option value="">Tất cả trạng thái</option>
+        <option value="Pending">Chờ duyệt</option>
+        <option value="Confirmed">Đã xác nhận</option>
+        <option value="Completed">Hoàn thành</option>
+        <option value="Cancelled">Đã hủy</option>
+      </select>
+      <select id="type" onchange="loadBookings()" class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+        <option value="">Tất cả loại</option>
+        <option value="tour">🗺 Tour</option>
+        <option value="hotel">🏨 Khách sạn</option>
+      </select>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="text-left px-5 py-3.5 font-semibold text-slate-600">Mã đặt</th>
+            <th class="text-left px-5 py-3.5 font-semibold text-slate-600">Khách hàng</th>
+            <th class="text-left px-5 py-3.5 font-semibold text-slate-600">Dịch vụ</th>
+            <th class="text-left px-5 py-3.5 font-semibold text-slate-600">Loại</th>
+            <th class="text-left px-5 py-3.5 font-semibold text-slate-600">Khách</th>
+            <th class="text-left px-5 py-3.5 font-semibold text-slate-600">Ngày</th>
+            <th class="text-left px-5 py-3.5 font-semibold text-slate-600">Giá</th>
+            <th class="text-left px-5 py-3.5 font-semibold text-slate-600">Trạng thái</th>
+            <th class="text-right px-5 py-3.5 font-semibold text-slate-600">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="table"></tbody>
+      </table>
+      <div id="loading" class="text-center py-12 text-slate-400 hidden">
+        <svg class="animate-spin h-8 w-8 mx-auto text-emerald-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        <p class="mt-2 text-sm">Đang tải dữ liệu...</p>
+      </div>
+      <div id="empty" class="text-center py-12 text-slate-400 hidden">
+        <p class="text-lg">📋 Không tìm thấy đơn nào</p>
+        <p class="text-xs mt-1">Thử thay đổi bộ lọc</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/components.js"></script>
+<script>
+if (!requireAdmin()) {}
+else {
+injectAdminSidebar('bookings.html');
+
+function showApiBanner(msg) {
+  const el = document.getElementById('api-banner');
+  if (!el) return;
+  if (!msg) { el.classList.add('hidden'); el.textContent = ''; return; }
+  el.classList.remove('hidden');
+  el.textContent = msg;
+}
+
+let allBookings = [];
+
+function statusBadge(status) {
+  const badges = {
+    'Pending': '<span class="badge badge-warning">⏳ Chờ duyệt</span>',
+    'Confirmed': '<span class="badge badge-primary">✅ Đã xác nhận</span>',
+    'Completed': '<span class="badge badge-success">🎉 Hoàn thành</span>',
+    'Cancelled': '<span class="badge badge-error">❌ Đã hủy</span>',
+  };
+  return badges[status] || `<span class="badge bg-slate-100 text-slate-600">${status}</span>`;
+}
+
+function showLoading(show) {
+  document.getElementById('loading').classList.toggle('hidden', !show);
+  document.getElementById('empty').classList.toggle('hidden', true);
+}
+
+function showEmpty() {
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('empty').classList.remove('hidden');
+  document.getElementById('table').innerHTML = '';
+}
+
+let debounceTimer;
+function debounceLoad() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(loadBookings, 300);
+}
+
+async function loadBookings() {
+  showLoading(true);
+  showApiBanner('');
+  try {
+    const search = document.getElementById('search').value.trim();
+    const status = document.getElementById('status').value;
+    const service_type = document.getElementById('type').value;
+    const params = {};
+    if (search) params.search = search;
+    if (status) params.status = status;
+    if (service_type) params.service_type = service_type;
+
+    const res = await Bookings.adminList(params);
+    if (res.success) {
+      allBookings = extractApiList(res);
+      if (allBookings.length === 0) {
+        showApiBanner('Không có đơn đặt nào. Kiểm tra lại bộ lọc hoặc đảm bảo đã chạy php artisan migrate --seed.');
+      }
+      renderStats();
+      renderTable();
+    } else {
+      showApiBanner('Lỗi tải dữ liệu: ' + (res.message || ''));
+      toast('Lỗi tải dữ liệu', 'error');
+    }
+  } catch (err) {
+    const msg401 = err && (err.status === 401 || String(err.message || '').toLowerCase().includes('unauthenticated'));
+    showApiBanner(msg401
+      ? 'Phiên đăng nhập hết hạn. Đăng nhập lại admin.'
+      : 'Không thể kết nối server. Bật backend: cd be → php artisan serve');
+    toast('Không thể kết nối server', 'error');
+    allBookings = [];
+  } finally {
+    showLoading(false);
+  }
+}
+
+function renderStats() {
+  const total = allBookings.length;
+  const pending = total ? allBookings.filter(b => b.status === 'Pending').length : '—';
+  const confirmed = total ? allBookings.filter(b => b.status === 'Confirmed').length : '—';
+  const completed = total ? allBookings.filter(b => b.status === 'Completed').length : '—';
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-confirmed').textContent = confirmed;
+  document.getElementById('stat-completed').textContent = completed;
+}
+
+function fmtDateDMY(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('vi-VN', {day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+function renderTable() {
+  if (allBookings.length === 0) { showEmpty(); return; }
+  document.getElementById('empty').classList.add('hidden');
+
+  const html = allBookings.map(b => {
+    const isHotel = (b.service_type || '').toLowerCase() === 'hotel';
+    const guests = b.guests || 1;
+
+    // Hotel → check_in_date / check_out_date | Tour → travel_date
+    let dateHtml;
+    if (isHotel) {
+      dateHtml = `
+        <div class="text-xs text-slate-500">
+          <div>📥 ${fmtDateDMY(b.check_in_date)}</div>
+          <div>📤 ${fmtDateDMY(b.check_out_date)}</div>
+        </div>`;
+    } else {
+      dateHtml = `<span class="text-sm text-slate-500">${fmtDateDMY(b.check_in_date || b.travel_date || b.created_at)}</span>`;
+    }
+
+    return `<tr class="border-b border-slate-100 hover:bg-slate-50">
+      <td class="px-5 py-4 font-mono text-xs text-slate-500 font-semibold">${b.code || '#' + b.id}</td>
+      <td class="px-5 py-4">
+        <div class="font-medium text-sm">${b.user_name || 'Khách vãng lai'}</div>
+        <div class="text-xs text-slate-400">${b.user_email || ''}</div>
+      </td>
+      <td class="px-5 py-4 text-sm text-slate-600 max-w-[180px] truncate" title="${b.service_name}">${b.service_name || '—'}</td>
+      <td class="px-5 py-4">
+        <span class="text-xs ${isHotel ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'} font-semibold px-2 py-1 rounded-full">
+          ${isHotel ? '🏨 Khách sạn' : '🗺 Tour'}
+        </span>
+      </td>
+      <td class="px-5 py-4 text-sm font-medium text-slate-600">${guests} người</td>
+      <td class="px-5 py-4">${dateHtml}</td>
+      <td class="px-5 py-4 font-semibold text-emerald-700 whitespace-nowrap">${formatPrice(parseFloat(b.total_price) || 0)}</td>
+      <td class="px-5 py-4">${statusBadge(b.status)}</td>
+      <td class="px-5 py-4 text-right">
+        <select data-bid="${b.id}" onchange="onStatusSelect(this)" class="border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer bg-white max-w-[155px]">
+          <option value="">Đổi trạng thái…</option>
+          <option value="Pending" ${b.status === 'Pending' ? 'disabled' : ''}>⏳ Chờ duyệt</option>
+          <option value="Confirmed" ${b.status === 'Confirmed' ? 'disabled' : ''}>✅ Xác nhận</option>
+          <option value="Completed" ${b.status === 'Completed' ? 'disabled' : ''}>🎉 Hoàn thành</option>
+          <option value="Cancelled" ${b.status === 'Cancelled' ? 'disabled' : ''}>❌ Hủy</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('table').innerHTML = html;
+}
+
+function onStatusSelect(el) {
+  const id = parseInt(el.getAttribute('data-bid'), 10);
+  const status = el.value;
+  el.value = '';
+  updateStatus(id, status);
+}
+
+async function updateStatus(id, status) {
+  if (!status) return;
+  try {
+    const res = await Bookings.adminUpdateStatus(id, status);
+    if (res.success) {
+      toast(`✅ Cập nhật trạng thái thành công!`);
+      loadBookings();
+    } else {
+      toast(res.message || 'Cập nhật thất bại', 'error');
+    }
+  } catch (err) {
+    toast('Không thể kết nối server', 'error');
+  }
+}
+
+loadBookings();
+}
+</script>
+</body></html>

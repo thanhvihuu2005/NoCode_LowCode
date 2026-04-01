@@ -1,0 +1,138 @@
+﻿<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Khách sạn | TravelWise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../design-system/colors.css" />
+    <link rel="stylesheet" href="../design-system/components.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ["Inter", "sans-serif"] } } },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .card-hover {
+        transition:
+          transform 0.25s,
+          box-shadow 0.25s;
+      }
+      .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50">
+    <div id="tw-navbar"></div>
+
+    <div
+      class="bg-gradient-to-r from-blue-700 to-indigo-600 text-white py-12 px-4"
+    >
+      <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-2">🏨 Khách sạn</h1>
+        <p class="text-emerald-100">
+          Tìm khách sạn phù hợp nhất cho chuyến đi của bạn
+        </p>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Filters -->
+      <div
+        class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-3 items-center"
+      >
+        <input
+          id="search"
+          placeholder="🔍 Tìm khách sạn..."
+          oninput="render()"
+          class="flex-1 min-w-[180px] border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        />
+        <select
+          id="location"
+          onchange="render()"
+          class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        >
+          <option value="">📍 Tất cả địa điểm</option>
+          <option>Vũng Tàu</option>
+          <option>Đà Lạt</option>
+          <option>Sapa</option>
+          <option>Hội An</option>
+        </select>
+        <select
+          id="sort"
+          onchange="render()"
+          class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        >
+          <option value="rating">⭐ Đánh giá cao nhất</option>
+          <option value="price-asc">💰 Giá thấp nhất</option>
+          <option value="price-desc">💎 Giá cao nhất</option>
+        </select>
+        <span id="count" class="text-sm text-slate-500 ml-auto"></span>
+      </div>
+
+      <div
+        id="hotel-grid"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      ></div>
+      <div id="empty" class="hidden text-center py-20 text-slate-400">
+        <div class="text-5xl mb-3">🔍</div>
+        <p class="font-medium">Không tìm thấy khách sạn nào</p>
+      </div>
+    </div>
+
+    <div id="tw-footer"></div>
+    <script src="../js/currency.js"></script>
+    <script src="../js/components.js"></script>
+    <script>
+      injectNavbar("hotels");
+      injectFooter();
+
+      function render() {
+        const q = (document.getElementById("search").value || "").toLowerCase();
+        const loc = document.getElementById("location").value;
+        const sort = document.getElementById("sort").value;
+        let list = [...DATA.hotels];
+        if (q)
+          list = list.filter(
+            (h) =>
+              h.name.toLowerCase().includes(q) ||
+              h.location.toLowerCase().includes(q),
+          );
+        if (loc) list = list.filter((h) => h.location === loc);
+        if (sort === "price-asc")
+          list.sort((a, b) => a.pricePerNight - b.pricePerNight);
+        else if (sort === "price-desc")
+          list.sort((a, b) => b.pricePerNight - a.pricePerNight);
+        else list.sort((a, b) => b.rating - a.rating);
+        document.getElementById("count").textContent =
+          `${list.length} khách sạn`;
+        document.getElementById("hotel-grid").innerHTML = list
+          .map((h) => hotelCard(h))
+          .join("");
+        document
+          .getElementById("empty")
+          .classList.toggle("hidden", list.length > 0);
+        document
+          .getElementById("hotel-grid")
+          .classList.toggle("hidden", list.length === 0);
+      }
+      render();
+      // Check URL param
+      const p = new URLSearchParams(location.search);
+      if (p.get("search"))
+        document.getElementById("search").value = p.get("search");
+      if (p.get("location"))
+        document.getElementById("location").value = p.get("location");
+      render();
+    </script>
+  </body>
+</html>

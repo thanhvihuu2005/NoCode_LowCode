@@ -1,0 +1,116 @@
+﻿<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tour du lịch | TravelWise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../design-system/colors.css" />
+    <link rel="stylesheet" href="../design-system/components.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ["Inter", "sans-serif"] } } },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50">
+    <div id="tw-navbar"></div>
+
+    <div
+      class="bg-gradient-to-r from-blue-700 to-indigo-600 text-white py-12 px-4"
+    >
+      <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-2">🗺 Tour du lịch</h1>
+        <p class="text-blue-100">
+          Khám phá những hành trình tuyệt vời trên khắp thế giới
+        </p>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <div
+        class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-3 items-center"
+      >
+        <input
+          id="search"
+          placeholder="🔍 Tìm tour..."
+          oninput="render()"
+          class="flex-1 min-w-[180px] border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+        <select
+          id="location"
+          onchange="render()"
+          class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          <option value="">📍 Tất cả</option>
+          <option>Việt Nam</option>
+          <option>Nhật Bản</option>
+          <option>Thụy Sĩ</option>
+          <option>Ý</option>
+          <option>Maldives</option>
+        </select>
+        <select
+          id="sort"
+          onchange="render()"
+          class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          <option value="rating">⭐ Đánh giá cao nhất</option>
+          <option value="price-asc">💰 Giá thấp nhất</option>
+          <option value="price-desc">💎 Giá cao nhất</option>
+        </select>
+        <span id="count" class="text-sm text-slate-500 ml-auto"></span>
+      </div>
+      <div
+        id="tour-grid"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      ></div>
+      <div id="empty" class="hidden text-center py-20 text-slate-400">
+        <div class="text-5xl mb-3">🔍</div>
+        <p>Không tìm thấy tour nào</p>
+      </div>
+    </div>
+
+    <div id="tw-footer"></div>
+    <script src="../js/currency.js"></script>
+    <script src="../js/components.js"></script>
+    <script>
+      injectNavbar("tours");
+      injectFooter();
+      function render() {
+        const q = (document.getElementById("search").value || "").toLowerCase();
+        const loc = document.getElementById("location").value;
+        const sort = document.getElementById("sort").value;
+        let list = [...DATA.tours];
+        if (q)
+          list = list.filter(
+            (t) =>
+              t.title.toLowerCase().includes(q) ||
+              t.location.toLowerCase().includes(q),
+          );
+        if (loc) list = list.filter((t) => t.location === loc);
+        if (sort === "price-asc")
+          list.sort((a, b) => a.pricePerPerson - b.pricePerPerson);
+        else if (sort === "price-desc")
+          list.sort((a, b) => b.pricePerPerson - a.pricePerPerson);
+        else list.sort((a, b) => b.rating - a.rating);
+        document.getElementById("count").textContent = `${list.length} tour`;
+        document.getElementById("tour-grid").innerHTML = list
+          .map((t) => tourCard(t))
+          .join("");
+        document
+          .getElementById("empty")
+          .classList.toggle("hidden", list.length > 0);
+      }
+      render();
+    </script>
+  </body>
+</html>

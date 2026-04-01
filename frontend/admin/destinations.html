@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Quản lý Điểm đến | TravelWise</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../design-system/colors.css"/>
+  <link rel="stylesheet" href="../design-system/components.css"/>
+  <script src="../js/currency.js"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;}
+    .modal-overlay{animation:fadeIn .2s;}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal-box{animation:slideUp .25s;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body class="bg-app text-content-primary">
+
+<!-- ═══ LAYOUT ═══ -->
+<div id="tw-sidebar"></div>
+<div class="ml-64">
+
+    <!-- TOPBAR -->
+    <header class="bg-surface border-b border-default px-8 py-5 flex items-center justify-between sticky top-0 z-20 shadow-soft">
+      <div>
+        <h1 class="text-2xl font-bold text-content-primary tracking-tight">📍 Quản lý Điểm đến</h1>
+        <p class="text-sm text-content-secondary mt-1">Thêm, sửa, xóa các điểm đến du lịch</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-content-secondary" id="admin-name">Admin</span>
+        <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-bold">A</div>
+      </div>
+    </header>
+
+    <!-- PAGE BODY -->
+    <main class="p-8">
+    <div id="api-banner" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-4"></div>
+
+      <!-- ACTION BAR -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3 flex-1">
+          <div class="relative flex-1 max-w-xs">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-content-tertiary">🔍</span>
+            <input id="search-input" type="text" placeholder="Tìm điểm đến..."
+              class="form-input pl-9"
+              oninput="debounceLoad()"/>
+          </div>
+          <select id="filter-status" onchange="currentPage=1;applyLocalState()" class="form-select">
+            <option value="">Tất cả trạng thái</option>
+            <option value="active">🟢 Đang hoạt động</option>
+            <option value="inactive">🔴 Ẩn</option>
+          </select>
+        </div>
+        <button onclick="openModal()" class="btn btn-primary">
+          ＋ Thêm điểm đến
+        </button>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="grid grid-cols-3 gap-6 mb-8" id="stats-row">
+        <div class="metric-card">
+          <div class="metric-icon">📍</div>
+          <div class="metric-value" id="stat-total">—</div>
+          <div class="metric-label">Tổng điểm đến</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">🟢</div>
+          <div class="metric-value text-success-600" id="stat-active">—</div>
+          <div class="metric-label">Đang hoạt động</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon">🔴</div>
+          <div class="metric-value text-error-600" id="stat-inactive">—</div>
+          <div class="metric-label">Bị ẩn</div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="card overflow-hidden">
+        <table class="table">
+          <thead class="table-header">
+            <tr>
+              <th class="w-12">#</th>
+              <th>Điểm đến</th>
+              <th>Từ khóa</th>
+              <th>Mô tả</th>
+              <th>Trạng thái</th>
+              <th class="text-right">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr><td colspan="6" class="text-center py-12 text-content-tertiary">Đang tải dữ liệu...</td></tr>
+          </tbody>
+        </table>
+        <!-- Pagination -->
+        <div class="px-6 py-4 border-t border-subtle flex items-center justify-between text-sm text-content-secondary" id="pagination">
+          <span id="page-info"></span>
+          <div class="flex gap-2" id="page-btns"></div>
+        </div>
+      </div>
+
+    </main>
+</div>
+
+<!-- ═══ MODAL THÊM / SỬA ═══ -->
+<div id="modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+  <div class="modal-box bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+    <!-- Header -->
+    <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+      <h2 class="font-bold text-lg" id="modal-title">Thêm điểm đến mới</h2>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+    </div>
+    <!-- Form -->
+    <form id="dest-form" onsubmit="handleSubmit(event)" class="p-6 space-y-4">
+      <input type="hidden" id="edit-id"/>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Tên điểm đến <span class="text-red-500">*</span></label>
+        <input id="f-name" type="text" required placeholder="VD: Đà Nẵng"
+          class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+        <p class="text-xs text-red-500 mt-1 hidden" id="err-name"></p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Từ khóa tìm kiếm</label>
+        <input id="f-keyword" type="text" placeholder="VD: Đà Nẵng, Da Nang"
+          class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">URL ảnh đại diện</label>
+        <input id="f-image" type="url" placeholder="https://..."
+          class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+        <img id="f-preview" src="" alt="" class="mt-2 rounded-xl h-28 w-full object-cover hidden"/>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Mô tả</label>
+        <textarea id="f-desc" rows="3" placeholder="Mô tả ngắn về điểm đến..."
+          class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Trạng thái</label>
+        <select id="f-status" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+          <option value="active">🟢 Đang hoạt động</option>
+          <option value="inactive">🔴 Ẩn</option>
+        </select>
+      </div>
+    </form>
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-3">
+      <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Hủy</button>
+      <button id="submit-btn" type="submit" form="dest-form" class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition">
+        Lưu lại
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL XÁC NHẬN XÓA ═══ -->
+<div id="confirm-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+  <div class="modal-box bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+    <div class="text-5xl mb-4">🗑️</div>
+    <h3 class="font-bold text-lg text-slate-800 mb-2">Xác nhận xóa</h3>
+    <p class="text-slate-500 text-sm mb-6" id="confirm-msg">Bạn có chắc muốn xóa điểm đến này?</p>
+    <div class="flex gap-3 justify-center">
+      <button onclick="closeConfirm()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm transition">Hủy</button>
+      <button id="confirm-btn" class="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition">Xóa</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-area" class="fixed top-4 right-4 z-[9999] space-y-2"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/components.js"></script>
+<script>
+// Initialize admin sidebar
+injectAdminSidebar('destinations.html');
+
+function showApiBanner(msg) {
+  const el = document.getElementById('api-banner');
+  if (!el) return;
+  if (!msg) { el.classList.add('hidden'); el.textContent = ''; return; }
+  el.classList.remove('hidden');
+  el.textContent = msg;
+}
+
+// ═══════════════════════════════════════════
+// AUTH GUARD
+// ═══════════════════════════════════════════
+if (!requireAdmin()) {}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let currentPage = 1, totalPages = 1, debounceTimer, deleteId = null;
+let _destinations = []; // local store (tránh conflict với DATA của components.js)
+
+function getFiltered() {
+  const q = (document.getElementById('search-input')?.value||'').toLowerCase();
+  const s = document.getElementById('filter-status')?.value||'';
+  return _destinations.filter(d =>
+    (!q || d.name.toLowerCase().includes(q) || d.keyword?.toLowerCase().includes(q)) &&
+    (!s || d.status === s)
+  );
+}
+
+// ═══════════════════════════════════════════
+// LOAD DATA (chỉ gọi API khi cần làm mới danh sách)
+// ═══════════════════════════════════════════
+function applyLocalState() {
+  const filtered = getFiltered();
+  const active   = _destinations.filter(d=>d.status==='active').length;
+  const inactive = _destinations.filter(d=>d.status==='inactive').length;
+
+  document.getElementById('stat-total').textContent    = _destinations.length;
+  document.getElementById('stat-active').textContent   = active;
+  document.getElementById('stat-inactive').textContent = inactive;
+
+  const PER = 8;
+  totalPages = Math.ceil(filtered.length / PER);
+  if (totalPages > 0 && currentPage > totalPages) currentPage = totalPages;
+  if (totalPages === 0) currentPage = 1;
+  const page = filtered.slice((currentPage-1)*PER, currentPage*PER);
+
+  renderTable(page);
+  renderPagination(filtered.length);
+}
+
+async function loadData() {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12 text-content-tertiary">Đang tải dữ liệu...</td></tr>';
+  showApiBanner('');
+  try {
+    const res = await Destinations.list();
+    if (res && res.success) {
+      _destinations = extractApiList(res);
+      if (_destinations.length === 0) {
+        showApiBanner('Không có điểm đến nào. Đảm bảo đã chạy: php artisan migrate --seed');
+      }
+    } else {
+      _destinations = [];
+      showApiBanner('Lỗi tải dữ liệu: ' + (res?.message || ''));
+    }
+  } catch (error) {
+    console.error('Lỗi tải dữ liệu Destinations:', error);
+    if (error.message === '401' || (error.status === 401)) {
+      showApiBanner('Phiên đăng nhập hết hạn. Đăng nhập lại admin.');
+      return;
+    }
+    showApiBanner('Không thể kết nối server. Bật backend: cd be → php artisan serve');
+    return;
+  }
+
+  applyLocalState();
+}
+
+function debounceLoad() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    currentPage = 1;
+    applyLocalState();
+  }, 300);
+}
+
+// ═══════════════════════════════════════════
+// RENDER TABLE
+// ═══════════════════════════════════════════
+function renderTable(rows) {
+  const tbody = document.getElementById('table-body');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-16 text-slate-400">
+      <div class="text-4xl mb-2">🔍</div><p>Không tìm thấy điểm đến nào</p>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((d, i) => `
+    <tr class="border-b border-slate-100 hover:bg-slate-50 transition group">
+      <td class="px-5 py-4 text-slate-400 text-xs">${d.code}</td>
+      <td class="px-5 py-4">
+        <div class="flex items-center gap-3">
+          ${d.image_url
+            ? `<img src="${d.image_url}" alt="${d.name}" class="w-12 h-10 rounded-lg object-cover flex-shrink-0"/>`
+            : `<div class="w-12 h-10 bg-slate-200 rounded-lg flex items-center justify-center text-xl">📍</div>`
+          }
+          <span class="font-semibold text-slate-800">${d.name}</span>
+        </div>
+      </td>
+      <td class="px-5 py-4 text-slate-500 text-xs">${d.keyword || '—'}</td>
+      <td class="px-5 py-4 text-slate-500 text-xs max-w-[200px] truncate">${d.description || '—'}</td>
+      <td class="px-5 py-4">
+        <button onclick="toggleStatus(${d.id})"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer transition
+            ${d.status==='active'
+              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+              : 'bg-red-100 text-red-600 hover:bg-red-200'}">
+          <span>${d.status==='active'?'🟢':'🔴'}</span>
+          ${d.status==='active'?'Hoạt động':'Ẩn'}
+        </button>
+      </td>
+      <td class="px-5 py-4 text-right">
+        <div class="flex items-center justify-end gap-2">
+          <button onclick="openModal(${d.id})"
+            class="bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+            ✏️ Sửa
+          </button>
+          <button onclick="confirmDelete(${d.id}, '${d.name}')"
+            class="bg-red-50 hover:bg-red-100 text-red-500 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+            🗑 Xóa
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderPagination(total) {
+  document.getElementById('page-info').textContent = `${total} điểm đến`;
+  const btns = document.getElementById('page-btns');
+  if (totalPages <= 1) { btns.innerHTML=''; return; }
+  let html = '';
+  for (let i=1; i<=totalPages; i++) {
+    html += `<button onclick="goPage(${i})"
+      class="w-8 h-8 text-sm rounded-lg ${i===currentPage?'bg-emerald-600 text-white':'bg-white border border-slate-200 hover:border-emerald-400 text-slate-600'} transition">
+      ${i}</button>`;
+  }
+  btns.innerHTML = html;
+}
+
+function goPage(p) { currentPage = p; applyLocalState(); }
+
+// ═══════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════
+function openModal(id = null) {
+  document.getElementById('modal').classList.remove('hidden');
+  resetForm();
+  if (id) {
+    const d = _destinations.find(x=>x.id===id);
+    document.getElementById('modal-title').textContent = '✏️ Chỉnh sửa điểm đến';
+    document.getElementById('edit-id').value    = id;
+    document.getElementById('f-name').value     = d.name;
+    document.getElementById('f-keyword').value  = d.keyword||'';
+    document.getElementById('f-image').value    = d.image_url||'';
+    document.getElementById('f-desc').value     = d.description||'';
+    document.getElementById('f-status').value   = d.status;
+    previewImage();
+  } else {
+    document.getElementById('modal-title').textContent = '＋ Thêm điểm đến mới';
+  }
+}
+
+function closeModal() { document.getElementById('modal').classList.add('hidden'); resetForm(); }
+
+function resetForm() {
+  document.getElementById('dest-form').reset();
+  document.getElementById('edit-id').value = '';
+  document.getElementById('f-preview').classList.add('hidden');
+  document.getElementById('err-name').classList.add('hidden');
+}
+
+function previewImage() {
+  const url = document.getElementById('f-image').value;
+  const img = document.getElementById('f-preview');
+  if (url) { img.src=url; img.classList.remove('hidden'); img.onerror=()=>img.classList.add('hidden'); }
+  else img.classList.add('hidden');
+}
+document.getElementById('f-image')?.addEventListener('input', previewImage);
+
+// ═══════════════════════════════════════════
+// SUBMIT
+// ═══════════════════════════════════════════
+async function handleSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submit-btn');
+  const id  = document.getElementById('edit-id').value;
+  const name= document.getElementById('f-name').value.trim();
+
+  // Client-side validation
+  if (!name) {
+    document.getElementById('err-name').textContent = 'Tên không được để trống!';
+    document.getElementById('err-name').classList.remove('hidden');
+    return;
+  }
+
+  // Kiểm tra trùng tên local
+  const dup = _destinations.find(d => d.name.toLowerCase()===name.toLowerCase() && (!id||d.id!==+id));
+  if (dup) {
+    document.getElementById('err-name').textContent = 'Điểm đến này đã tồn tại!';
+    document.getElementById('err-name').classList.remove('hidden');
+    return;
+  }
+
+  showLoading(btn, true);
+
+  const payload = {
+    name,
+    keyword:     document.getElementById('f-keyword').value || name,
+    image_url:   document.getElementById('f-image').value,
+    description: document.getElementById('f-desc').value,
+    status:      document.getElementById('f-status').value,
+  };
+
+  try {
+    if (id) {
+      await Destinations.update(+id, payload);
+      showToast('✅ Cập nhật điểm đến thành công!');
+    } else {
+      await Destinations.create(payload);
+      showToast('✅ Thêm điểm đến thành công!');
+    }
+    closeModal();
+    await loadData();
+  } catch (err) {
+    console.error('Submit error:', err);
+    const msg = err?.errors?.name?.[0] || err?.message || 'Có lỗi xảy ra!';
+    document.getElementById('err-name').textContent = msg;
+    document.getElementById('err-name').classList.remove('hidden');
+  } finally {
+    showLoading(btn, false);
+  }
+}
+
+// ═══════════════════════════════════════════
+// DELETE
+// ═══════════════════════════════════════════
+function confirmDelete(id, name) {
+  deleteId = id;
+  document.getElementById('confirm-msg').textContent = `Bạn có chắc muốn xóa "${name}"?`;
+  document.getElementById('confirm-modal').classList.remove('hidden');
+  document.getElementById('confirm-btn').onclick = doDelete;
+}
+
+function closeConfirm() { document.getElementById('confirm-modal').classList.add('hidden'); deleteId=null; }
+
+async function doDelete() {
+  const btn = document.getElementById('confirm-btn');
+  showLoading(btn, true);
+  try {
+    await Destinations.remove(deleteId);
+    showToast('🗑️ Đã xóa điểm đến!', 'error');
+    closeConfirm();
+    await loadData();
+  } catch (err) {
+    console.error('Delete error:', err);
+    showToast('❌ Xóa thất bại: ' + (err?.message || 'Lỗi server'), 'error');
+  } finally {
+    showLoading(btn, false);
+  }
+}
+
+// ═══════════════════════════════════════════
+// TOGGLE STATUS
+// ═══════════════════════════════════════════
+async function toggleStatus(id) {
+  const d = _destinations.find(x=>x.id===id);
+  if (!d) return;
+  try {
+    await Destinations.toggleStatus(id);
+    const newStatus = d.status==='active' ? 'inactive' : 'active';
+    const label = newStatus==='active' ? 'kích hoạt' : 'ẩn';
+    showToast(`✅ Đã ${label} điểm đến "${d.name}"`);
+    await loadData();
+  } catch (err) {
+    console.error('Toggle error:', err);
+    showToast('❌ Không thể thay đổi trạng thái', 'error');
+  }
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg, type='success') {
+  const area = document.getElementById('toast-area');
+  const el   = document.createElement('div');
+  const bg   = type==='success'?'bg-emerald-500':type==='error'?'bg-red-500':'bg-blue-500';
+  el.className = `px-5 py-3 rounded-xl text-white text-sm font-medium shadow-xl ${bg} translate-x-[120%] transition-all duration-300`;
+  el.textContent = msg;
+  area.appendChild(el);
+  requestAnimationFrame(()=>el.classList.remove('translate-x-[120%]'));
+  setTimeout(()=>{el.classList.add('translate-x-[120%]');setTimeout(()=>el.remove(),300);},3000);
+}
+
+function showLoading(el,show){
+  if(show){el.disabled=true;el._o=el.innerHTML;el.innerHTML='<svg class="animate-spin h-4 w-4 mx-auto" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>';}
+  else{el.disabled=false;el.innerHTML=el._o;}
+}
+
+// handleLogout is now provided by components.js
+
+// Close modal on backdrop click
+document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+document.getElementById('confirm-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeConfirm(); });
+
+// Init
+loadData();
+const u = typeof getUser==='function' ? getUser() : null;
+if (u) document.getElementById('admin-name').textContent = u.name;
+</script>
+</body>
+</html>

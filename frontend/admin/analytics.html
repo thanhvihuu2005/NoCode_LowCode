@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Báo cáo | TravelWise Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: { 50:'#eff6ff',100:'#dbeafe',500:'#0f62fe',600:'#0043ce' },
+        accent:  { 50:'#fffbeb',100:'#fef3c7',200:'#fde68a',500:'#f59e0b',600:'#d97706',700:'#b45309' },
+        app:     '#f8fafc',
+        surface: '#ffffff',
+        content: { primary:'#0f172a', secondary:'#64748b', tertiary:'#94a3b8' },
+        border:  '#e2e8f0',
+        subtle:  '#f1f5f9',
+        success: { 50:'#ecfdf5',200:'#a7f3d0',500:'#10b981',600:'#059669' },
+        error:   { 50:'#fef2f2',200:'#fecaca',500:'#ef4444',600:'#dc2626' },
+        warning: { 100:'#fef3c7',500:'#f59e0b',600:'#d97706' },
+        secondary:{ 100:'#f1f5f9',200:'#e2e8f0',700:'#334155' },
+        money:   '#1e40af',
+      },
+      fontFamily: { sans: ['Inter','sans-serif'] },
+      boxShadow: { soft:'0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06)', upsell:'0 4px 14px rgba(245,158,11,.25)' },
+    }
+  }
+}
+</script>
+<style>body{font-family:'Inter',sans-serif;}</style>
+</head>
+<body class="bg-app">
+<div id="tw-sidebar"></div>
+<div class="ml-64">
+  <header class="bg-surface border-b border-border px-8 py-5 sticky top-0 z-20 shadow-soft">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-content-primary tracking-tight">📈 Báo cáo & Phân tích</h1>
+        <p class="text-sm text-content-secondary mt-1">Thống kê doanh thu, đặt chỗ và hiệu quả kinh doanh</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg bg-secondary-100 text-secondary-700 border border-secondary-200 hover:bg-secondary-200 transition-all">📊 Xuất báo cáo</button>
+        <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg bg-accent-500 text-white hover:bg-accent-600 transition-all shadow-upsell">🔥 Tối ưu upsell</button>
+      </div>
+    </div>
+  </header>
+  <main class="p-8 space-y-8 max-w-7xl">
+    <div id="api-banner" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"></div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="kpi-cards"></div>
+
+    <!-- Revenue Chart -->
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-soft">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="font-bold text-lg text-content-primary">💰 Doanh thu theo tháng</h2>
+          <p class="text-sm text-content-secondary">6 tháng gần nhất (VND)</p>
+        </div>
+        <span class="text-xs bg-app border border-border px-3 py-1 rounded-full text-content-secondary">Cập nhật: Hôm nay</span>
+      </div>
+      <div class="flex items-end gap-4 h-48" id="revenue-chart"></div>
+    </div>
+
+    <!-- Upsell Insight Card -->
+    <div class="bg-accent-50 rounded-2xl border border-accent-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-lg text-accent-700 flex items-center gap-2">🔥 Cơ hội Upsell & Cross-sell hôm nay</h3>
+          <p class="text-sm text-accent-600 mt-1" id="upsell-desc">Đang tải...</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-right">
+            <div class="text-2xl font-bold text-accent-700" id="upsell-revenue">—</div>
+            <div class="text-xs text-accent-600">Doanh thu upsell</div>
+          </div>
+          <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg bg-accent-500 text-white hover:bg-accent-600 transition-all shadow-upsell">Xem chi tiết</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Split charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Top Destinations -->
+      <div class="bg-surface rounded-2xl border border-border p-6 shadow-soft">
+        <h2 class="font-bold text-lg text-content-primary mb-6">🏆 Top điểm đến</h2>
+        <div class="space-y-4" id="top-destinations">
+          <div class="text-sm text-content-secondary text-center py-8">Đang tải...</div>
+        </div>
+      </div>
+
+      <!-- Service breakdown + efficiency -->
+      <div class="bg-surface rounded-2xl border border-border p-6 shadow-soft">
+        <h2 class="font-bold text-lg text-content-primary mb-6">📊 Phân loại dịch vụ & Hiệu quả</h2>
+        <div class="space-y-4 mb-6" id="service-breakdown">
+          <div class="text-sm text-content-secondary text-center py-4">Đang tải...</div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-center" id="efficiency-metrics">
+          <div class="p-3 bg-error-50 rounded-xl border border-error-200">
+            <div class="text-2xl font-bold text-error-500" id="cancel-rate">—</div>
+            <div class="text-xs text-error-500 font-medium">Tỷ lệ hủy</div>
+          </div>
+          <div class="p-3 bg-success-50 rounded-xl border border-success-200">
+            <div class="text-2xl font-bold text-success-600" id="avg-rating">—</div>
+            <div class="text-xs text-success-600 font-medium">Đánh giá TB</div>
+          </div>
+        </div>
+
+        <!-- Upsell Performance -->
+        <div class="mt-6 pt-4 border-t border-subtle">
+          <h3 class="font-semibold text-content-primary mb-3 flex items-center gap-2">🎯 Hiệu quả Upsell</h3>
+          <div class="grid grid-cols-2 gap-3" id="upsell-stats">
+            <div class="text-center p-3 bg-accent-50 rounded-xl border border-accent-200">
+              <div class="text-xl font-bold text-accent-600" id="upsell-rate">—</div>
+              <div class="text-xs text-accent-600">Tỷ lệ chuyển đổi</div>
+            </div>
+            <div class="text-center p-3 bg-accent-50 rounded-xl border border-accent-200">
+              <div class="text-xl font-bold text-accent-600" id="avg-upsell">—</div>
+              <div class="text-xs text-accent-600">Giá trị TB/upsell</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/components.js"></script>
+<script>
+function fmtVND(p) {
+  if (isNaN(p) || p == null) return '0₫';
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(p);
+}
+function fmtCompact(p) {
+  if (p >= 1e9) return (p/1e9).toFixed(1) + 'B₫';
+  if (p >= 1e6) return (p/1e6).toFixed(1) + 'M₫';
+  if (p >= 1e3) return (p/1e3).toFixed(0) + 'K₫';
+  return fmtVND(p);
+}
+
+function showApiBanner(msg) {
+  const el = document.getElementById('api-banner');
+  if (!el) return;
+  if (!msg) { el.classList.add('hidden'); el.textContent = ''; return; }
+  el.classList.remove('hidden');
+  el.textContent = msg;
+}
+
+async function loadAnalytics() {
+  const [bkRes, reviewsRes] = await Promise.allSettled([
+    Bookings.adminList(),
+    Reviews.list(),
+  ]);
+
+  const failCount = [bkRes, reviewsRes].filter((r) => r.status === 'rejected').length;
+  if (failCount > 0) {
+    showApiBanner('Không tải được báo cáo. Đăng nhập admin và bật backend (php artisan serve).');
+    if (typeof showToast === 'function') showToast('Lỗi tải dữ liệu báo cáo', 'error');
+  } else {
+    showApiBanner('');
+  }
+
+  const bookings = listFromSettled(bkRes);
+  const reviews = listFromSettled(reviewsRes);
+
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const lastMonth  = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const lastMonthL = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth()+1).padStart(2,'0')}`;
+
+  const cmBookings = bookings.filter(b => b.status==='Completed'||b.status==='Confirmed');
+  const lmBookings = cmBookings.filter(b => b.created_at && b.created_at.startsWith(lastMonthL));
+  const tmBookings = cmBookings.filter(b => b.created_at && b.created_at.startsWith(thisMonth));
+  const prevBookings = bookings.filter(b => b.created_at && b.created_at.startsWith(lastMonthL));
+
+  const thisMonthRevenue = tmBookings.reduce((s,b)=>s+(parseFloat(b.total_price)||0),0);
+  const lastMonthRevenue = lmBookings.reduce((s,b)=>s+(parseFloat(b.total_price)||0),0);
+  const revChange = lastMonthRevenue > 0
+    ? (((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100).toFixed(0)
+    : 0;
+
+  const thisMonthBookings = bookings.filter(b=>b.created_at&&b.created_at.startsWith(thisMonth));
+  const lastMonthBks     = bookings.filter(b=>b.created_at&&b.created_at.startsWith(lastMonthL));
+  const bkChange = lastMonthBks.length > 0
+    ? (((thisMonthBookings.length - lastMonthBks.length) / lastMonthBks.length) * 100).toFixed(0)
+    : 0;
+
+  const pendingCount  = bookings.filter(b=>b.status==='Pending').length;
+  const cancelledCount = bookings.filter(b=>b.status==='Cancelled').length;
+  const totalBk        = bookings.length || 1;
+  const cancelRate     = ((cancelledCount / totalBk) * 100).toFixed(1);
+  const avgRating      = reviews.length > 0
+    ? (reviews.reduce((s,r)=>s+(parseFloat(r.rating)||0),0) / reviews.length).toFixed(1)
+    : '—';
+
+  // ── KPI Cards ───────────────────────────────────────────────
+  document.getElementById('kpi-cards').innerHTML = `
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-soft">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-12 h-12 bg-primary-50 border border-border rounded-xl flex items-center justify-center text-2xl">💰</div>
+        ${revChange != 0 ? `<span class="text-xs font-bold px-2 py-1 rounded-full ${Number(revChange)>=0?'text-success-600 bg-success-50':'text-error-500 bg-error-50'}">${Number(revChange)>=0?'+':''}${revChange}%</span>` : ''}
+      </div>
+      <div class="text-2xl font-extrabold text-content-primary">${fmtCompact(thisMonthRevenue)}</div>
+      <div class="text-sm text-content-secondary font-medium mt-1">Doanh thu tháng này</div>
+      <div class="text-xs text-content-tertiary mt-1">vs tháng trước</div>
+    </div>
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-soft">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-12 h-12 bg-primary-50 border border-border rounded-xl flex items-center justify-center text-2xl">📋</div>
+        ${bkChange != 0 ? `<span class="text-xs font-bold px-2 py-1 rounded-full ${Number(bkChange)>=0?'text-success-600 bg-success-50':'text-error-500 bg-error-50'}">${Number(bkChange)>=0?'+':''}${bkChange}%</span>` : ''}
+      </div>
+      <div class="text-2xl font-extrabold text-primary-600">${thisMonthBookings.length}</div>
+      <div class="text-sm text-content-secondary font-medium mt-1">Đặt chỗ tháng này</div>
+      <div class="text-xs text-content-tertiary mt-1">vs tháng trước</div>
+    </div>
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-soft">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-12 h-12 bg-accent-50 border border-accent-200 rounded-xl flex items-center justify-center text-2xl">⏳</div>
+      </div>
+      <div class="text-2xl font-extrabold text-accent-600">${pendingCount}</div>
+      <div class="text-sm text-content-secondary font-medium mt-1">Chờ xác nhận</div>
+      <div class="text-xs text-content-tertiary mt-1">đơn hàng mới</div>
+    </div>
+    <div class="bg-surface rounded-2xl border border-border p-6 shadow-soft">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-12 h-12 bg-primary-50 border border-border rounded-xl flex items-center justify-center text-2xl">🎯</div>
+      </div>
+      <div class="text-2xl font-extrabold text-primary-600">${cancelRate}%</div>
+      <div class="text-sm text-content-secondary font-medium mt-1">Tỷ lệ hủy</div>
+      <div class="text-xs text-content-tertiary mt-1">${cancelledCount} đơn đã hủy</div>
+    </div>`;
+
+  // ── Revenue Chart (6 months) ─────────────────────────────────
+  const monthLabels = [], monthRevenue = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthLabels.push('T' + (d.getMonth() + 1));
+    const label = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const rev = cmBookings
+      .filter(b => b.created_at && b.created_at.startsWith(label))
+      .reduce((s,b) => s + (parseFloat(b.total_price)||0), 0);
+    monthRevenue.push(rev);
+  }
+  const maxRev = Math.max(...monthRevenue, 1);
+  document.getElementById('revenue-chart').innerHTML = monthLabels.map((m,i) => `
+    <div class="flex-1 flex flex-col items-center gap-2 group">
+      <span class="text-xs text-content-secondary font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-surface border border-border px-2 py-1 rounded shadow-soft relative -top-2">${fmtVND(monthRevenue[i])}</span>
+      <div class="w-full max-w-[48px] bg-primary-500 border border-primary-600 rounded-t-lg transition-all hover:bg-primary-600 cursor-pointer shadow-soft relative" style="height:${Math.max(4, Math.round(monthRevenue[i]/maxRev*140))}px"></div>
+      <span class="text-xs font-semibold text-content-secondary">${m}</span>
+    </div>`).join('');
+
+  // ── Top Destinations ─────────────────────────────────────────
+  const destMap = {};
+  bookings.forEach(b => {
+    const loc = b.tour_location || b.hotel_location || '';
+    if (loc) {
+      destMap[loc] = (destMap[loc] || 0) + 1;
+    }
+  });
+  const topDests = Object.entries(destMap)
+    .sort((a,b) => b[1]-a[1])
+    .slice(0, 5);
+  const maxDest = topDests.length ? topDests[0][1] : 1;
+  const destIcons = ['🏖️','🌸','🏔️','🏮','🌺'];
+  document.getElementById('top-destinations').innerHTML = topDests.length
+    ? topDests.map(([loc,count],i) => `
+      <div class="flex items-center justify-between p-3 bg-subtle rounded-xl border border-border">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">${destIcons[i]||'📍'}</span>
+          <div>
+            <div class="font-semibold text-content-primary">${loc}</div>
+            <div class="text-xs text-content-secondary">${count} đặt chỗ</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="font-bold text-primary-600">${count}</div>
+          <div class="w-20 bg-secondary-100 rounded-full h-2 mt-1">
+            <div class="bg-primary-500 h-2 rounded-full" style="width:${Math.round(count/maxDest*100)}%"></div>
+          </div>
+        </div>
+      </div>`).join('')
+    : `<div class="text-sm text-content-secondary text-center py-4">Chưa có dữ liệu điểm đến</div>`;
+
+  // ── Service Breakdown ─────────────────────────────────────────
+  const tourBk   = bookings.filter(b=>b.tour_id || b.service_type==='tour').length;
+  const hotelBk  = bookings.filter(b=>b.hotel_id || b.service_type==='hotel').length;
+  const totalSvc = tourBk + hotelBk || 1;
+  const tourPct  = Math.round(tourBk / totalSvc * 100);
+  const hotelPct = Math.round(hotelBk / totalSvc * 100);
+  document.getElementById('service-breakdown').innerHTML = `
+    <div>
+      <div class="flex justify-between text-sm mb-2">
+        <span class="text-content-secondary">Đặt tour</span>
+        <span class="font-semibold text-primary-600">${tourPct}%</span>
+      </div>
+      <div class="bg-secondary-100 rounded-full h-4">
+        <div class="bg-primary-500 h-4 rounded-full flex items-center pl-3 text-white text-xs font-bold" style="width:${tourPct}%">${tourPct}%</div>
+      </div>
+    </div>
+    <div>
+      <div class="flex justify-between text-sm mb-2">
+        <span class="text-content-secondary">Đặt khách sạn</span>
+        <span class="font-semibold text-success-600">${hotelPct}%</span>
+      </div>
+      <div class="bg-secondary-100 rounded-full h-4">
+        <div class="bg-success-500 h-4 rounded-full flex items-center pl-3 text-white text-xs font-bold" style="width:${hotelPct}%">${hotelPct}%</div>
+      </div>
+    </div>`;
+
+  // ── Efficiency Metrics ───────────────────────────────────────
+  document.getElementById('cancel-rate').textContent = cancelRate + '%';
+  document.getElementById('avg-rating').textContent  = avgRating + '★';
+
+  // ── Upsell stats (placeholder — driven by recommendations data) ─
+  const upsellBookings = bookings.filter(b => b.is_upsell || b.referral_source === 'upsell');
+  const upsellRate = bookings.length ? ((upsellBookings.length / bookings.length) * 100).toFixed(0) : 0;
+  const upsellRev  = upsellBookings.reduce((s,b)=>s+(parseFloat(b.total_price)||0),0);
+  document.getElementById('upsell-rate').textContent   = upsellRate + '%';
+  document.getElementById('avg-upsell').textContent     = upsellBookings.length ? fmtCompact(Math.round(upsellRev / upsellBookings.length)) : '—';
+  document.getElementById('upsell-revenue').textContent = fmtCompact(upsellRev);
+  document.getElementById('upsell-desc').textContent = upsellBookings.length
+    ? `${upsellBookings.length} giao dịch upsell · Đang hoạt động`
+    : 'Chưa có dữ liệu upsell';
+}
+
+if (requireAdmin()) {
+injectAdminSidebar('analytics.html');
+loadAnalytics();
+}
+</script>
+</body>
+</html>

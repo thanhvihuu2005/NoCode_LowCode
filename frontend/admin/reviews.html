@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Đánh giá | TravelWise Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+<style>body{font-family:'Inter',sans-serif;}</style>
+</head>
+<body class="bg-slate-100">
+<div id="tw-sidebar"></div>
+<div class="ml-64">
+  <header class="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-20">
+    <h1 class="text-xl font-bold">⭐ Quản lý Đánh giá</h1>
+    <p class="text-xs text-slate-500">Duyệt và ẩn các đánh giá từ khách hàng</p>
+  </header>
+  <main class="p-6">
+    <div id="api-banner" class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-4"></div>
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <p class="text-xs text-slate-500 font-medium">Tổng đánh giá</p>
+        <p class="text-2xl font-bold text-slate-800 mt-1" id="stat-total">—</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <p class="text-xs text-slate-500 font-medium">Đang hiển thị</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-1" id="stat-published">—</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4">
+        <p class="text-xs text-slate-500 font-medium">Đã ẩn</p>
+        <p class="text-2xl font-bold text-red-500 mt-1" id="stat-hidden">—</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 mb-4 flex gap-3">
+      <input id="search" placeholder="🔍 Tìm khách, dịch vụ..." oninput="debounceLoad()" class="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+      <select id="status" onchange="loadReviews()" class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+        <option value="">Tất cả</option>
+        <option value="published">🟢 Đang hiển thị</option>
+        <option value="hidden">🔴 Ẩn</option>
+      </select>
+    </div>
+
+    <div id="loading" class="text-center py-12 text-slate-400 hidden">
+      <svg class="animate-spin h-8 w-8 mx-auto text-blue-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      <p class="mt-2 text-sm">Đang tải dữ liệu...</p>
+    </div>
+
+    <div class="space-y-3" id="review-list"></div>
+    <div id="empty" class="text-center py-12 text-slate-400 hidden">
+      <p class="text-lg">Không tìm thấy đánh giá nào</p>
+    </div>
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/components.js"></script>
+<script>
+injectAdminSidebar('reviews.html');
+if (!requireAdmin()) {}
+else {
+
+function showApiBanner(msg) {
+  const el = document.getElementById('api-banner');
+  if (!el) return;
+  if (!msg) { el.classList.add('hidden'); el.textContent = ''; return; }
+  el.classList.remove('hidden');
+  el.textContent = msg;
+}
+let allReviews = [];
+
+function showLoading(show) {
+  document.getElementById('loading').classList.toggle('hidden', !show);
+  document.getElementById('empty').classList.toggle('hidden', true);
+  document.getElementById('review-list').innerHTML = '';
+}
+
+function showEmpty() {
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('empty').classList.remove('hidden');
+  document.getElementById('review-list').innerHTML = '';
+}
+
+let debounceTimer;
+function debounceLoad() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(loadReviews, 300);
+}
+
+async function loadReviews() {
+  showLoading(true);
+  try {
+    const search = document.getElementById('search').value.trim();
+    const status = document.getElementById('status').value;
+    const params = {};
+    if (search) params.search = search;
+    if (status) params.status = status;
+
+    const res = await Reviews.list(params);
+    if (res.success) {
+      allReviews = extractApiList(res);
+      if (allReviews.length === 0) {
+        showApiBanner('Không có đánh giá nào. Đảm bảo đã chạy: php artisan migrate --seed');
+      }
+      renderStats();
+      renderList();
+    } else {
+      showApiBanner('Lỗi tải dữ liệu: ' + (res.message || ''));
+      toast('Lỗi tải dữ liệu', 'error');
+    }
+  } catch (err) {
+    const is401 = err && (err.status === 401 || String(err.message || '').toLowerCase().includes('unauthenticated'));
+    showApiBanner(is401
+      ? 'Phiên đăng nhập hết hạn. Đăng nhập lại admin.'
+      : 'Không thể kết nối server. Bật backend: cd be → php artisan serve');
+    toast('Không thể kết nối server', 'error');
+    allReviews = [];
+  } finally {
+    showLoading(false);
+  }
+}
+
+function renderStats() {
+  document.getElementById('stat-total').textContent = allReviews.length;
+  document.getElementById('stat-published').textContent = allReviews.filter(r => r.status === 'published').length;
+  document.getElementById('stat-hidden').textContent = allReviews.filter(r => r.status === 'hidden').length;
+}
+
+function renderList() {
+  if (allReviews.length === 0) { showEmpty(); return; }
+  document.getElementById('empty').classList.add('hidden');
+  document.getElementById('loading').classList.add('hidden');
+
+  const html = allReviews.map(r => {
+    const date = r.created_at ? new Date(r.created_at).toLocaleDateString('vi-VN') : '—';
+    const stars = '⭐'.repeat(parseInt(r.rating) || 0);
+    const isHidden = r.status === 'hidden';
+
+    return `<div class="bg-white rounded-2xl border border-slate-200 p-5 flex gap-4">
+      <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-lg font-bold text-emerald-700 flex-shrink-0">${(r.user_name || 'A').charAt(0).toUpperCase()}</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-3 mb-1">
+          <div>
+            <p class="font-semibold text-slate-800 text-sm">${r.user_name || 'Người dùng'}</p>
+            <p class="text-xs text-slate-400">${r.service_name || '—'} · ${date}</p>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-sm font-bold">${stars}</span>
+            <button onclick="toggleReview(${r.id}, '${r.status}')" class="text-xs font-semibold px-2.5 py-1 rounded-full ${isHidden ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-red-100 text-red-600 hover:bg-red-200'} transition">
+              ${isHidden ? '🟢 Hiển thị' : '🔴 Ẩn'}
+            </button>
+            <button onclick="deleteReview(${r.id})" class="text-xs bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-500 px-2 py-1 rounded-lg transition">🗑</button>
+          </div>
+        </div>
+        <p class="text-sm text-slate-600 ${isHidden ? 'opacity-50 line-through' : ''}">"${r.comment || 'Không có bình luận'}"</p>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('review-list').innerHTML = html;
+}
+
+async function toggleReview(id, currentStatus) {
+  try {
+    const res = await Reviews.toggleStatus(id);
+    if (res.success) {
+      toast(`✅ ${res.message}`);
+      loadReviews();
+    } else {
+      toast(res.message || 'Thao tác thất bại', 'error');
+    }
+  } catch (err) {
+    toast('Không thể kết nối server', 'error');
+  }
+}
+
+async function deleteReview(id) {
+  if (!confirm('Xóa đánh giá này? Hành động này không thể hoàn tác.')) return;
+  try {
+    const res = await Reviews.remove(id);
+    if (res.success) {
+      toast('🗑️ Đã xóa đánh giá!');
+      loadReviews();
+    } else {
+      toast(res.message || 'Xóa thất bại', 'error');
+    }
+  } catch (err) {
+    toast('Không thể kết nối server', 'error');
+  }
+}
+
+loadReviews();
+}
+</script>
+</body></html>

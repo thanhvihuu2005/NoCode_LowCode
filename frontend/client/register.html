@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="vi"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Đăng ký | TravelWise</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+<style>body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f172a,#1e3a5f);min-height:100vh;}</style>
+</head><body class="flex items-center justify-center min-h-screen p-4">
+<div class="w-full max-w-md">
+  <div class="text-center mb-8">
+    <a href="index.html" class="text-3xl font-extrabold text-white">✈️ TravelWise</a>
+    <p class="text-slate-400 mt-2 text-sm">Tạo tài khoản miễn phí</p>
+  </div>
+  <div class="bg-white rounded-3xl shadow-2xl p-8">
+    <h1 class="text-2xl font-bold text-slate-800 mb-6">Đăng ký</h1>
+    <form id="reg-form" onsubmit="handleRegister(event)" class="space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Họ và tên <span class="text-red-500">*</span></label>
+          <input id="name" type="text" required placeholder="Nguyễn Văn A" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Email <span class="text-red-500">*</span></label>
+          <input id="email" type="email" required placeholder="email@gmail.com" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Số điện thoại</label>
+          <input id="phone" type="tel" placeholder="0901 234 567" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Mật khẩu <span class="text-red-500">*</span></label>
+          <input id="password" type="password" required placeholder="••••••••" minlength="6" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Xác nhận <span class="text-red-500">*</span></label>
+          <input id="confirm" type="password" required placeholder="••••••••" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"/>
+        </div>
+      </div>
+      <div id="err" class="hidden bg-red-50 text-red-600 text-sm rounded-xl px-4 py-3 border border-red-200"></div>
+      <label class="flex items-start gap-2 text-sm text-slate-600">
+        <input type="checkbox" id="agree" required class="mt-0.5 rounded"/>
+        <span>Tôi đồng ý với <a href="#" class="text-emerald-600 hover:underline">Điều khoản dịch vụ</a> và <a href="#" class="text-emerald-600 hover:underline">Chính sách bảo mật</a></span>
+      </label>
+      <button id="submit-btn" type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition text-sm">
+        Tạo tài khoản
+      </button>
+    </form>
+    <p class="text-center text-sm text-slate-500 mt-6">Đã có tài khoản? <a href="login.html" class="text-emerald-600 font-semibold hover:underline">Đăng nhập</a></p>
+  </div>
+</div>
+<script src="../js/components.js"></script>
+<script src="../js/api.js"></script>
+<script>
+async function handleRegister(e){
+  e.preventDefault();
+  const btn=document.getElementById('submit-btn');
+  const err=document.getElementById('err');
+  err.classList.add('hidden');
+  
+  const password = document.getElementById('password').value;
+  const confirm = document.getElementById('confirm').value;
+  
+  if(password !== confirm){
+    err.textContent='Mật khẩu xác nhận không khớp!'; 
+    err.classList.remove('hidden'); 
+    return;
+  }
+  
+  showLoading(btn,true);
+  
+  try {
+    const userData = {
+      name: document.getElementById('name').value,
+      email: document.getElementById('email').value,
+      phone: document.getElementById('phone').value,
+      password: password,
+      password_confirmation: confirm
+    };
+    
+    // Call real API
+    const response = await Auth.register(userData);
+    
+    if (response.success) {
+      showToast('✅ Đăng ký thành công! Chào mừng bạn!');
+      setTimeout(() => window.location.href = 'index.html', 800);
+    } else {
+      throw new Error(response.message || 'Đăng ký thất bại');
+    }
+  } catch (error) {
+    console.error('Register error:', error);
+    let errorMsg = 'Đăng ký thất bại. Vui lòng thử lại!';
+    
+    if (error.message.includes('email')) {
+      errorMsg = 'Email đã được sử dụng!';
+    } else if (error.message) {
+      errorMsg = error.message;
+    }
+    
+    err.textContent = errorMsg;
+    err.classList.remove('hidden');
+    showLoading(btn, false);
+  }
+}
+</script>
+</body></html>
+

@@ -1,0 +1,347 @@
+/**
+ * TravelWise UI Components
+ * Reusable component styles for admin dashboard
+ */
+
+/* ===== BUTTONS ===== */
+.btn {
+  @apply inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-primary {
+  @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-sm;
+}
+
+.btn-secondary {
+  @apply bg-secondary-100 text-secondary-700 hover:bg-secondary-200 focus:ring-secondary-500 border border-secondary-200;
+}
+
+.btn-accent {
+  @apply bg-accent-500 text-white hover:bg-accent-600 focus:ring-accent-500 shadow-upsell;
+}
+
+.btn-success {
+  @apply bg-success-500 text-white hover:bg-success-600 focus:ring-success-500;
+}
+
+.btn-warning {
+  @apply bg-warning-500 text-white hover:bg-warning-600 focus:ring-warning-500;
+}
+
+.btn-error {
+  @apply bg-error-500 text-white hover:bg-error-600 focus:ring-error-500;
+}
+
+.btn-ghost {
+  @apply text-secondary-600 hover:bg-secondary-100 focus:ring-secondary-500;
+}
+
+.btn-sm {
+  @apply px-3 py-1.5 text-xs;
+}
+
+.btn-lg {
+  @apply px-6 py-3 text-base;
+}
+
+/* ===== CARDS ===== */
+.card {
+  @apply bg-surface border border-default rounded-2xl shadow-soft;
+}
+
+.card-elevated {
+  @apply bg-elevated shadow-medium;
+}
+
+.card-header {
+  @apply px-6 py-4 border-b border-subtle;
+}
+
+.card-body {
+  @apply px-6 py-4;
+}
+
+.card-footer {
+  @apply px-6 py-4 border-t border-subtle bg-secondary-50;
+}
+
+/* ===== STATUS BADGES ===== */
+.badge {
+  @apply inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full;
+}
+
+.badge-success {
+  @apply bg-success-50 text-success-700 border border-success-200;
+}
+
+.badge-warning {
+  @apply bg-warning-50 text-warning-700 border border-warning-200;
+}
+
+.badge-error {
+  @apply bg-error-50 text-error-700 border border-error-200;
+}
+
+.badge-primary {
+  @apply bg-primary-50 text-primary-700 border border-primary-200;
+}
+
+.badge-accent {
+  @apply bg-accent-500 text-white shadow-upsell;
+}
+
+/* ===== TABLES ===== */
+.table {
+  @apply w-full text-sm text-left;
+}
+
+.table-header {
+  @apply bg-secondary-50 border-b border-default;
+}
+
+.table-header th {
+  @apply px-6 py-4 font-semibold text-content-secondary uppercase tracking-wider text-xs;
+}
+
+.table-row {
+  @apply border-b border-subtle hover:bg-primary-50/30 transition-colors;
+}
+
+.table-cell {
+  @apply px-6 py-4 text-content-primary;
+}
+
+.table-cell-secondary {
+  @apply px-6 py-4 text-content-secondary;
+}
+
+/* ===== FORMS ===== */
+.form-input {
+  @apply w-full px-4 py-2.5 text-sm border border-default rounded-xl bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors;
+}
+
+.form-select {
+  @apply w-full px-4 py-2.5 text-sm border border-default rounded-xl bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-content-primary mb-2;
+}
+
+.form-error {
+  @apply text-error-600 text-xs mt-1;
+}
+
+/* ===== METRICS CARDS ===== */
+.metric-card {
+  @apply bg-surface rounded-2xl border border-default p-6 shadow-soft;
+}
+
+.metric-icon {
+  @apply w-12 h-12 bg-secondary-50 border border-default rounded-xl flex items-center justify-center text-2xl mb-4;
+}
+
+.metric-value {
+  @apply text-2xl font-extrabold text-content-primary;
+}
+
+.metric-label {
+  @apply text-sm text-content-secondary font-medium mt-1;
+}
+
+.metric-change {
+  @apply text-xs font-bold px-2 py-1 rounded-full border;
+}
+
+.metric-change-up {
+  @apply text-success-700 bg-success-50 border-success-200;
+}
+
+.metric-change-down {
+  @apply text-error-700 bg-error-50 border-error-200;
+}
+
+/* ===== UPSELL COMPONENTS ===== */
+.upsell-card {
+  @apply bg-gradient-to-r from-accent-50 to-accent-100 border-2 border-accent-200 rounded-2xl p-6 shadow-upsell;
+}
+
+.upsell-badge {
+  @apply bg-gradient-to-r from-accent-500 to-accent-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-upsell;
+}
+
+.deal-highlight {
+  @apply bg-accent-500 text-white px-2 py-1 rounded text-xs font-bold animate-pulse-slow;
+}
+
+.savings-badge {
+  @apply bg-error-500 text-white px-2 py-0.5 rounded text-xs font-bold;
+}
+
+/* ===== RECOMMENDATION CARD ===== */
+.recommendation-card {
+  @apply bg-surface border-2 border-accent-200 rounded-xl p-4 hover:shadow-medium transition-all duration-300;
+}
+
+.recommendation-card:hover {
+  @apply border-accent-300 shadow-upsell;
+}
+
+.recommendation-header {
+  @apply flex items-center justify-between mb-3;
+}
+
+.recommendation-title {
+  @apply font-semibold text-content-primary text-sm;
+}
+
+.recommendation-price {
+  @apply font-bold text-money;
+}
+
+.recommendation-cta {
+  @apply w-full bg-accent-500 hover:bg-accent-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm;
+}
+
+/* ===== SIDEBAR NAVIGATION ===== */
+.sidebar {
+  @apply w-64 bg-secondary-900 text-secondary-400 flex flex-col fixed h-full z-30;
+}
+
+.sidebar-header {
+  @apply p-6 border-b border-secondary-800;
+}
+
+.sidebar-nav {
+  @apply flex-1 p-4 space-y-0.5 text-sm overflow-y-auto scrollbar-hide;
+}
+
+.sidebar-link {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all;
+}
+
+.sidebar-link-active {
+  @apply bg-primary-600 text-white font-semibold;
+}
+
+.sidebar-link-inactive {
+  @apply text-secondary-400 hover:bg-white/10 hover:text-white;
+}
+
+.sidebar-section {
+  @apply text-xs uppercase tracking-widest text-secondary-500 px-3 pt-5 pb-1 font-semibold;
+}
+
+/* ===== LOADING STATES ===== */
+.loading-spinner {
+  @apply animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full;
+}
+
+.skeleton {
+  @apply bg-secondary-200 animate-pulse rounded;
+}
+
+.skeleton-text {
+  @apply h-4 bg-secondary-200 animate-pulse rounded;
+}
+
+.skeleton-avatar {
+  @apply w-10 h-10 bg-secondary-200 animate-pulse rounded-full;
+}
+
+/* ===== UTILITIES ===== */
+.text-money {
+  @apply text-money font-semibold;
+}
+
+.text-revenue-up {
+  @apply text-revenue-up font-semibold;
+}
+
+.text-revenue-down {
+  @apply text-revenue-down font-semibold;
+}
+
+.shadow-upsell {
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.25);
+}
+
+.border-gradient-accent {
+  border-image: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-600)) 1;
+}
+
+/* ===== RESPONSIVE UTILITIES ===== */
+@media (max-width: 768px) {
+  .sidebar {
+    @apply transform -translate-x-full transition-transform;
+  }
+  
+  .sidebar.open {
+    @apply translate-x-0;
+  }
+  
+  .main-content {
+    @apply ml-0;
+  }
+}
+/* ===== LIGHTBOX STYLES ===== */
+#tw-lightbox {
+  backdrop-filter: blur(8px);
+}
+
+#tw-lightbox button {
+  transition: all 0.2s ease;
+}
+
+#tw-lightbox button:hover {
+  transform: scale(1.05);
+}
+
+#lightbox-thumbnails {
+  max-height: 100px;
+}
+
+#lightbox-thumbnails button {
+  transition: all 0.2s ease;
+}
+
+#lightbox-thumbnails button:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== COMMENTS STYLES ===== */
+.rating-star {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.rating-star:hover {
+  transform: scale(1.1);
+}
+
+.comment-card {
+  transition: all 0.2s ease;
+}
+
+.comment-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== GALLERY STYLES ===== */
+.gallery-thumb {
+  transition: all 0.2s ease;
+}
+
+.gallery-thumb:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

@@ -1,0 +1,105 @@
+﻿<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Về chúng tôi | TravelWise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../design-system/colors.css" />
+    <link rel="stylesheet" href="../design-system/components.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ["Inter", "sans-serif"] } } },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-white">
+    <div id="tw-navbar"></div>
+    <div
+      class="bg-gradient-to-r from-blue-700 to-indigo-600 text-white py-12 px-4 text-white py-20 px-4 text-center"
+    >
+      <h1 class="text-4xl font-extrabold mb-4">Về TravelWise</h1>
+      <p class="text-slate-300 max-w-xl mx-auto text-lg">
+        Nền tảng đặt tour và khách sạn hàng đầu Việt Nam — kết nối bạn với những
+        hành trình tuyệt vời.
+      </p>
+    </div>
+    <div class="max-w-4xl mx-auto px-4 py-16">
+      <div class="grid md:grid-cols-3 gap-8 mb-16" id="stats-grid">
+        <!-- Stats will be injected by JavaScript -->
+      </div>
+      <div class="bg-emerald-50 rounded-3xl p-8 mb-12">
+        <h2 class="text-2xl font-bold text-slate-800 mb-4">
+          Sứ mệnh của chúng tôi
+        </h2>
+        <p class="text-slate-600 leading-relaxed text-lg">
+          TravelWise ra đời với một mục tiêu đơn giản: giúp mỗi người Việt Nam
+          dễ dàng tiếp cận những trải nghiệm du lịch tuyệt vời nhất — dù đó là
+          kỳ nghỉ cuối tuần gần nhà hay hành trình vòng quanh thế giới.
+        </p>
+      </div>
+      <h2 class="text-2xl font-bold text-center mb-8">Đội ngũ của chúng tôi</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="team-grid">
+        <!-- Team members will be injected by JavaScript -->
+      </div>
+    </div>
+    <div id="tw-footer"></div>
+    <script src="../js/currency.js"></script>
+    <script src="../js/components.js"></script>
+    <script>
+      injectNavbar("about");
+      injectFooter();
+
+      // Render stats
+      const stats = [
+        { icon: "🌍", title: "500+", sub: "Điểm đến" },
+        { icon: "🏨", title: "1.200+", sub: "Khách sạn" },
+        { icon: "🗺", title: "300+", sub: "Tour du lịch" },
+        { icon: "👥", title: "50.000+", sub: "Khách hàng" },
+        { icon: "⭐", title: "4.8/5", sub: "Điểm đánh giá" },
+        { icon: "🔒", title: "100%", sub: "Thanh toán an toàn" },
+      ];
+
+      document.getElementById("stats-grid").innerHTML = stats
+        .map(
+          (s) => `
+  <div class="text-center p-6 bg-slate-50 rounded-2xl">
+    <div class="text-4xl mb-3">${s.icon}</div>
+    <p class="text-3xl font-extrabold text-emerald-600 mb-1">${s.title}</p>
+    <p class="text-slate-500">${s.sub}</p>
+  </div>
+`,
+        )
+        .join("");
+
+      // Render team
+      const team = [
+        { name: "Nguyễn Minh Khoa", role: "CEO & Co-founder", emoji: "👨‍💼" },
+        { name: "Trần Thị Lan", role: "CTO", emoji: "👩‍💻" },
+        { name: "Lê Văn Nam", role: "Head of Design", emoji: "🎨" },
+        { name: "Phạm Thu Hà", role: "Marketing Lead", emoji: "📣" },
+      ];
+
+      document.getElementById("team-grid").innerHTML = team
+        .map(
+          (p) => `
+  <div class="text-center p-4 bg-white rounded-2xl border border-slate-200">
+    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">${p.emoji}</div>
+    <p class="font-semibold text-slate-800 text-sm">${p.name}</p>
+    <p class="text-xs text-slate-500">${p.role}</p>
+  </div>
+`,
+        )
+        .join("");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,128 @@
+﻿<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liên hệ | TravelWise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../design-system/colors.css" />
+    <link rel="stylesheet" href="../design-system/components.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ["Inter", "sans-serif"] } } },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50">
+    <div id="tw-navbar"></div>
+    <div class="max-w-4xl mx-auto px-4 py-12">
+      <div class="text-center mb-10">
+        <h1 class="text-3xl font-bold">📞 Liên hệ với chúng tôi</h1>
+        <p class="text-slate-500 mt-2">
+          Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7
+        </p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6 mb-10" id="contact-info">
+        <!-- Contact info will be injected by JavaScript -->
+      </div>
+      <div class="bg-white rounded-3xl border border-slate-200 p-8">
+        <h2 class="font-bold text-xl mb-6">Gửi tin nhắn cho chúng tôi</h2>
+        <form onsubmit="sendMsg(event)" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs font-semibold text-slate-500 block mb-1"
+                >Họ tên *</label
+              >
+              <input
+                required
+                placeholder="Nguyễn Văn A"
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500 block mb-1"
+                >Email *</label
+              >
+              <input
+                type="email"
+                required
+                placeholder="email@gmail.com"
+                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-500 block mb-1"
+              >Chủ đề</label
+            >
+            <select
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            >
+              <option>Hỗ trợ đặt tour/khách sạn</option>
+              <option>Khiếu nại dịch vụ</option>
+              <option>Hợp tác kinh doanh</option>
+              <option>Khác</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-slate-500 block mb-1"
+              >Nội dung *</label
+            >
+            <textarea
+              required
+              rows="4"
+              placeholder="Nhập nội dung cần hỗ trợ..."
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none"
+            ></textarea>
+          </div>
+          <button
+            type="submit"
+            class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition text-sm"
+          >
+            📨 Gửi tin nhắn
+          </button>
+        </form>
+      </div>
+    </div>
+    <div id="tw-footer"></div>
+    <script src="../js/currency.js"></script>
+    <script src="../js/components.js"></script>
+    <script>
+      injectNavbar("contact");
+      injectFooter();
+
+      // Render contact info
+      const contactInfo = [
+        { icon: "📍", title: "Địa chỉ", info: "123 Nguyễn Huệ, Q.1, TP. HCM" },
+        { icon: "📧", title: "Email", info: "support@travelwise.vn" },
+        { icon: "📞", title: "Hotline", info: "1800 1234 (miễn phí)" },
+      ];
+
+      document.getElementById("contact-info").innerHTML = contactInfo
+        .map(
+          (c) => `
+  <div class="bg-white rounded-2xl p-6 text-center border border-slate-200">
+    <div class="text-4xl mb-3">${c.icon}</div>
+    <p class="font-bold text-slate-800 mb-1">${c.title}</p>
+    <p class="text-slate-500 text-sm">${c.info}</p>
+  </div>
+`,
+        )
+        .join("");
+
+      function sendMsg(e) {
+        e.preventDefault();
+        showToast("✅ Gửi tin thành công! Chúng tôi sẽ phản hồi trong 24h.");
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html><html lang="vi"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Đặt dịch vụ thành công | TravelWise</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+<style>
+body{font-family:'Inter',sans-serif;}
+@keyframes bounce{0%,100%{transform:translateY(-5%)}50%{transform:translateY(0)}}.bounce{animation:bounce 1s infinite;}
+@keyframes confetti{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(360deg);opacity:0}}
+.confetti{position:fixed;width:10px;height:10px;animation:confetti 3s ease-out forwards;}
+</style>
+</head>
+<body class="bg-slate-50">
+<div id="tw-navbar"></div>
+<div class="max-w-3xl mx-auto py-12 px-4">
+  <div class="text-center mb-10">
+    <div class="text-7xl bounce mb-6">🎉</div>
+    <h1 class="text-3xl font-bold mb-2 text-slate-900">Đặt dịch vụ thành công!</h1>
+    <p class="text-slate-600">Chúng tôi đã ghi nhận yêu cầu của bạn và sẽ liên hệ xác nhận sớm nhất.</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-6">
+    <h2 class="text-xl font-bold mb-4 text-slate-900">📋 Thông tin đặt chỗ</h2>
+    
+    <div class="flex flex-col md:flex-row gap-6 mb-6">
+      <div class="bg-emerald-50 rounded-xl p-5 flex-1" id="bk-info">
+        <div class="flex justify-between items-center text-sm mb-3">
+          <span class="text-slate-600">Mã đặt chỗ</span>
+          <span class="font-bold text-emerald-600 font-mono" id="bk-id">—</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mb-3">
+          <span class="text-slate-600">Dịch vụ</span>
+          <span class="font-semibold text-slate-900" id="bk-name">—</span>
+        </div>
+        <!-- Hotel dates -->
+        <div class="flex justify-between items-center text-sm mb-3" id="row-checkin" style="display:none">
+          <span class="text-slate-600">Nhận phòng</span>
+          <span class="text-slate-900 font-medium" id="bk-checkin">—</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mb-3" id="row-checkout" style="display:none">
+          <span class="text-slate-600">Trả phòng</span>
+          <span class="text-slate-900 font-medium" id="bk-checkout">—</span>
+        </div>
+        <!-- Tour dates -->
+        <div class="flex justify-between items-center text-sm mb-3" id="row-departure" style="display:none">
+          <span class="text-slate-600">Khởi hành</span>
+          <span class="text-slate-900 font-medium" id="bk-departure">—</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mb-3" id="row-return" style="display:none">
+          <span class="text-slate-600">Kết thúc</span>
+          <span class="text-slate-900 font-medium" id="bk-return">—</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mb-3">
+          <span class="text-slate-600">Số khách</span>
+          <span class="text-slate-900 font-medium" id="bk-guests">—</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mb-3">
+          <span class="text-slate-600">Ngày đặt</span>
+          <span class="text-slate-900 font-medium" id="bk-date">—</span>
+        </div>
+        <div class="flex justify-between items-center text-sm mb-3">
+          <span class="text-slate-600">Thanh toán</span>
+          <span class="text-slate-900 font-medium" id="bk-payment">—</span>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-emerald-100">
+          <span class="font-semibold text-slate-900">Tổng thanh toán</span>
+          <span class="text-2xl font-bold text-emerald-600" id="bk-price">—</span>
+        </div>
+      </div>
+      
+      <!-- QR Code Section -->
+      <div class="flex flex-col justify-center items-center bg-white border border-slate-200 p-4 rounded-xl shrink-0 md:w-48">
+        <p class="text-sm font-semibold text-slate-700 mb-2">Mã quét HD/Bill</p>
+        <img id="bk-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TravelWise&color=10b981" alt="QR Code" class="w-32 h-32"/>
+        <p class="text-xs text-slate-500 mt-2 text-center">Quét để xem hóa đơn</p>
+      </div>
+    </div>
+
+    <div class="bg-blue-50 rounded-xl p-4 mb-4">
+      <p class="text-sm text-blue-800 font-medium mb-2">📧 Email xác nhận đã được gửi</p>
+      <p class="text-xs text-blue-700">Vui lòng kiểm tra hộp thư của bạn để xem chi tiết đặt chỗ.</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <a href="booking-history.html" class="text-center bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-xl transition text-sm">
+        📜 Lịch sử đặt chỗ
+      </a>
+      <a href="index.html" class="text-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition text-sm">
+        🏠 Về trang chủ
+      </a>
+    </div>
+  </div>
+
+  <!-- UPSELL / CROSS-SELL SECTION -->
+  <div class="bg-white rounded-2xl shadow-sm border border-orange-200 overflow-hidden relative" id="upsell-section" style="display:none;">
+      <!-- Accent top bar -->
+      <div class="bg-orange-500 text-white text-xs font-bold py-1.5 px-4 text-center uppercase tracking-wider">
+        🔥 Ưu đãi đặc biệt dành riêng cho bạn
+      </div>
+      <div class="p-6">
+        <h3 class="text-lg font-bold mb-1" id="upsell-title">Gợi ý hoàn hảo cho chuyến đi của bạn</h3>
+        <p class="text-sm text-slate-500 mb-5" id="upsell-desc">Dựa trên đặt chỗ hiện tại, những lựa chọn này sẽ giúp chuyến đi tuyệt vời hơn.</p>
+        
+        <div class="flex flex-col sm:flex-row bg-slate-50 border border-slate-200 rounded-xl p-4 gap-4 hover:border-orange-500 transition-all cursor-pointer">
+          <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden shrink-0 relative">
+            <img src="https://images.unsplash.com/photo-1542259009477-d625272157b7" alt="Upsell Image" class="w-full h-full object-cover" id="upsell-img" />
+            <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded text-[11px] font-bold flex items-center gap-1 shadow-sm text-slate-800">
+              ⭐ <span id="upsell-rating">9.5</span>
+            </div>
+          </div>
+          <div class="flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start mb-1">
+                <h4 class="font-semibold text-slate-900 text-base leading-tight" id="upsell-name">
+                  Tour tham quan đảo lân cận
+                </h4>
+                <span class="bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded flex items-center whitespace-nowrap border border-orange-500/20 ml-2">
+                  🔥 Giảm 15%
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 line-clamp-2 mt-1" id="upsell-info">Bao gồm xe đưa đón từ khách sạn, bữa trưa hải sản và HDV.</p>
+            </div>
+            <div class="flex justify-between items-end mt-3">
+              <div>
+                <span class="block text-xs text-slate-400 line-through mb-0.5" id="upsell-old-price">1,500,000₫</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-lg font-bold text-orange-600" id="upsell-new-price">1,275,000₫</span>
+                </div>
+              </div>
+              <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold py-2 px-5 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+                Thêm vào Trip
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
+<div id="tw-footer"></div>
+<script src="../js/components.js"></script>
+<script>
+// Format VND Function
+function formatVNDCustom(amount) {
+    if (isNaN(amount) || amount === null) return '0₫';
+    return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '₫';
+}
+
+function fmtDateDMY(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('vi-VN', {day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+injectNavbar(); injectFooter();
+const bk = JSON.parse(localStorage.getItem('tw_last_booking') || '{}');
+if(bk.id){
+  document.getElementById('bk-id').textContent = bk.id;
+  document.getElementById('bk-name').textContent = bk.name || '—';
+  document.getElementById('bk-date').textContent = bk.date || '—';
+
+  const priceParsed = parseFloat(bk.price) || 0;
+  const totalVND = priceParsed < 10000 ? priceParsed * 23000 : priceParsed;
+  document.getElementById('bk-price').textContent = formatVNDCustom(totalVND);
+
+  // Hotel dates
+  if (bk.type === 'hotel' && (bk.checkin || bk.checkout)) {
+    document.getElementById('row-checkin').style.display = 'flex';
+    document.getElementById('bk-checkin').textContent = fmtDateDMY(bk.checkin);
+    document.getElementById('row-checkout').style.display = 'flex';
+    document.getElementById('bk-checkout').textContent = fmtDateDMY(bk.checkout);
+  }
+
+  // Tour dates
+  if (bk.type === 'tour' && (bk.departure || bk.returnDate)) {
+    document.getElementById('row-departure').style.display = 'flex';
+    document.getElementById('bk-departure').textContent = fmtDateDMY(bk.departure);
+    document.getElementById('row-return').style.display = 'flex';
+    document.getElementById('bk-return').textContent = fmtDateDMY(bk.returnDate);
+  }
+
+  // Guests
+  const guestCount = bk.guests || (bk.guests && typeof bk.guests === 'object' ? (bk.guests.adults || 0) + (bk.guests.children || 0) : null);
+  document.getElementById('bk-guests').textContent = guestCount ? `${guestCount} người` : '—';
+
+  // Payment
+  document.getElementById('bk-payment').textContent = bk.payment || 'Thẻ tín dụng / Ghi nợ';
+
+  // QR
+  const qrData = encodeURIComponent(`TravelWise Bill\nID: ${bk.id}\nService: ${bk.name}\nTotal: ${formatVNDCustom(totalVND)}\nPayment: ${bk.payment || 'Card'}`);
+  document.getElementById('bk-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}&color=10b981`;
+
+  // Upsell
+  const isHotel = bk.type === 'hotel';
+  
+  const upsellSection = document.getElementById('upsell-section');
+  upsellSection.style.display = 'block';
+
+  if (isHotel) {
+     document.getElementById('upsell-title').textContent = 'Khám phá ngay: Các Tour nổi bật gần chỗ nghỉ';
+     document.getElementById('upsell-desc').textContent = 'Nâng tầm trải nghiệm với tour du lịch hấp dẫn, đón trả tận nơi.';
+     document.getElementById('upsell-name').textContent = 'Tour Vịnh Hạ Long 1 Ngày VIP - Đón tại KS';
+     document.getElementById('upsell-old-price').textContent = formatVNDCustom(1500000);
+     document.getElementById('upsell-new-price').textContent = formatVNDCustom(1250000);
+     document.getElementById('upsell-rating').textContent = '9.8';
+     document.getElementById('upsell-img').src = 'https://images.unsplash.com/photo-1528127269322-539828232584';
+     document.getElementById('upsell-info').textContent = 'Trải nghiệm du thuyền, dùng bữa trưa hải sản trên tàu và chèo Kayak.';
+  } else {
+     document.getElementById('upsell-title').textContent = 'Tiện lợi hơn: Chỗ nghỉ ngay gần điểm khởi hành Tour';
+     document.getElementById('upsell-desc').textContent = 'Thư giãn thoải mái tối đa trước và sau hành trình khám phá của bạn.';
+     document.getElementById('upsell-name').textContent = 'Luxury Ocean View Hotel - Ưu đãi ghép Tour';
+     document.getElementById('upsell-old-price').textContent = formatVNDCustom(2400000);
+     document.getElementById('upsell-new-price').textContent = formatVNDCustom(1950000);
+     document.getElementById('upsell-rating').textContent = '9.4';
+     document.getElementById('upsell-img').src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945';
+     document.getElementById('upsell-info').textContent = 'Miễn phí nâng cấp hạng phòng và buffet sáng khi đặt cùng Tour.';
+  }
+}
+
+// Create confetti effect
+function createConfetti() {
+  const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+  for (let i = 0; i < 50; i++) {
+    setTimeout(() => {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + '%';
+      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.animationDelay = Math.random() * 0.5 + 's';
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 3000);
+    }, i * 30);
+  }
+}
+
+createConfetti();
+</script>
+</body></html>

@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html><html lang="vi"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lịch sử đặt chỗ | TravelWise</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+<style>body{font-family:'Inter',sans-serif;}</style>
+</head><body class="bg-slate-50">
+<div id="tw-navbar"></div>
+<div class="max-w-4xl mx-auto px-4 py-10">
+  <h1 class="text-2xl font-bold mb-2">📋 Lịch sử đặt chỗ</h1>
+  <p class="text-slate-500 text-sm mb-6">Quản lý tất cả các đơn đặt dịch vụ của bạn</p>
+  <div class="flex gap-2 mb-6">
+    <button onclick="filterStatus('')"    id="tab-all"       class="tab-btn active px-4 py-2 text-sm font-medium rounded-xl bg-emerald-600 text-white">Tất cả</button>
+    <button onclick="filterStatus('Confirmed')"  id="tab-confirmed" class="tab-btn px-4 py-2 text-sm font-medium rounded-xl bg-white border border-slate-200 text-slate-600 hover:border-emerald-400">Đã xác nhận</button>
+    <button onclick="filterStatus('Pending')"    id="tab-pending"   class="tab-btn px-4 py-2 text-sm font-medium rounded-xl bg-white border border-slate-200 text-slate-600 hover:border-emerald-400">Chờ xử lý</button>
+    <button onclick="filterStatus('Completed')"  id="tab-done"      class="tab-btn px-4 py-2 text-sm font-medium rounded-xl bg-white border border-slate-200 text-slate-600 hover:border-emerald-400">Hoàn thành</button>
+    <button onclick="filterStatus('Cancelled')"  id="tab-cancelled" class="tab-btn px-4 py-2 text-sm font-medium rounded-xl bg-white border border-slate-200 text-slate-600 hover:border-emerald-400">Đã hủy</button>
+  </div>
+  <div id="list" class="space-y-4"></div>
+  <div id="empty" class="hidden text-center py-20 text-slate-400"><div class="text-5xl mb-3">📋</div><p>Không có đơn đặt nào</p></div>
+</div>
+<div id="tw-footer"></div>
+<script src="../js/components.js"></script>
+<script>
+injectNavbar(); injectFooter();
+if(!getToken()) location.href='login.html';
+const ALL=[...DATA.bookings,...JSON.parse(localStorage.getItem('tw_my_bookings')||'[]')];
+let currentFilter='';
+function filterStatus(s){
+  currentFilter=s;
+  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('bg-emerald-600','text-white');b.classList.add('bg-white','border','border-slate-200','text-slate-600');});
+  const active=document.getElementById('tab-'+(s||'all'));
+  if(active){active.classList.add('bg-emerald-600','text-white');active.classList.remove('bg-white','border','border-slate-200','text-slate-600');}
+  render();
+}
+function render(){
+  const list=ALL.filter(b=>!currentFilter||b.status===currentFilter);
+  document.getElementById('empty').classList.toggle('hidden',list.length>0);
+  document.getElementById('list').innerHTML=list.map(b=>`
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl ${b.serviceType==='hotel'?'bg-emerald-100':'bg-blue-100'} flex items-center justify-center text-2xl flex-shrink-0">
+        ${b.serviceType==='hotel'?'🏨':'🗺'}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-slate-800 truncate">${b.serviceName||b.name}</p>
+        <p class="text-xs text-slate-500 mt-0.5">🗓 ${b.date} · Mã: <span class="font-mono">${b.id}</span></p>
+      </div>
+      <div class="text-right flex-shrink-0">
+        <p class="font-bold text-slate-800 mb-1">$${b.price}</p>
+        ${bookingBadge(b.status)}
+      </div>
+    </div>
+  `).join('');
+}
+render();
+</script>
+</body></html>
+

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TravelWise — Khám phá thế giới</title>
+  <meta name="description" content="Đặt tour và khách sạn tốt nhất với TravelWise. Hàng trăm điểm đến, giá tốt nhất."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../design-system/colors.css">
+  <link rel="stylesheet" href="../design-system/components.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <style>
+    body{font-family:'Inter',sans-serif;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    .fade-up{animation:fadeUp .65s ease forwards}
+    .fade-up-d1{animation-delay:.15s;opacity:0}
+    .scrollbar-hide{scrollbar-width:none;-ms-overflow-style:none}
+    .scrollbar-hide::-webkit-scrollbar{display:none}
+    .guest-dd{display:none}.guest-dd.open{display:block}
+    .booking-blue{background-color:#003580}
+  </style>
+</head>
+<body class="bg-white text-slate-800">
+
+<div id="tw-navbar"></div>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="relative min-h-[540px] flex items-center justify-center pt-8 pb-20 overflow-hidden">
+  <div class="absolute inset-0 z-0"
+    style="background-image:url('https://images.unsplash.com/photo-1542259009477-d625272157b7?q=80&w=2069&auto=format&fit=crop');background-size:cover;background-position:center">
+    <div class="absolute inset-0 bg-blue-900/30 mix-blend-multiply"></div>
+  </div>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+    <div class="text-center max-w-4xl mx-auto mb-10 fade-up">
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-2 text-white drop-shadow-lg">
+        RONG CHƠI BỐN PHƯƠNG, GIÁ VẪN "YÊU THƯƠNG"
+      </h1>
+    </div>
+    <!-- SearchBar -->
+    <div class="relative w-full shadow-2xl rounded-3xl z-20 fade-up fade-up-d1">
+      <div class="flex justify-center -mb-px relative z-10">
+        <div class="bg-white rounded-t-xl px-1 pt-1 flex shadow-sm">
+          <button onclick="setTab('hotels')" id="tab-hotels"
+            class="flex items-center gap-2 px-6 py-3 font-semibold text-[15px] border-b-2 transition-colors whitespace-nowrap text-blue-600 border-blue-600">
+            🛏 Khách sạn
+          </button>
+          <button onclick="setTab('tours')" id="tab-tours"
+            class="flex items-center gap-2 px-6 py-3 font-semibold text-[15px] border-b-2 border-transparent transition-colors whitespace-nowrap text-gray-600 hover:text-blue-500">
+            🗺 Tours
+          </button>
+        </div>
+      </div>
+      <div class="bg-white p-6 md:p-8 rounded-b-2xl shadow-xl w-full">
+        <form onsubmit="doSearch(event)" class="flex flex-col gap-4">
+          <div class="flex items-center gap-3 border border-gray-300 rounded-xl px-4 py-3.5 hover:border-gray-400 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+            📍<input id="dest" type="text" placeholder="Bạn muốn đi đâu hoặc tên khách sạn?"
+              class="w-full bg-transparent border-none p-0 focus:ring-0 text-gray-900 text-[15px] placeholder:text-gray-500 font-medium outline-none"/>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex border border-gray-300 rounded-xl hover:border-gray-400 transition-all bg-white divide-x divide-gray-200 overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+              <div class="flex-1 flex items-center px-4 relative">
+                <span class="absolute left-4 pointer-events-none text-gray-500">📅</span>
+                <input type="date" id="checkin" class="w-full bg-transparent border-none py-3.5 pl-8 pr-0 focus:ring-0 text-[14px] text-gray-900 font-semibold outline-none cursor-pointer"/>
+              </div>
+              <div class="flex-1 flex items-center px-4 relative">
+                <span class="absolute left-4 pointer-events-none text-gray-500">📅</span>
+                <input type="date" id="checkout" class="w-full bg-transparent border-none py-3.5 pl-8 pr-0 focus:ring-0 text-[14px] text-gray-900 font-semibold outline-none cursor-pointer"/>
+              </div>
+            </div>
+            <div class="relative" id="guest-wrap">
+              <div onclick="toggleGuest()" class="flex items-center gap-3 border border-gray-300 rounded-xl px-4 py-3.5 hover:border-gray-400 cursor-pointer bg-white transition-all">
+                <span>👥</span>
+                <div class="flex flex-col w-full">
+                  <span class="text-[14px] text-gray-900 font-semibold leading-tight" id="guest-label">2 người lớn</span>
+                  <span class="text-[12px] text-gray-500" id="room-label">1 phòng</span>
+                </div>
+                <span class="text-gray-500 text-xs" id="guest-chevron">▼</span>
+              </div>
+              <div id="guest-dropdown" class="guest-dd absolute top-[calc(100%+8px)] left-0 w-full bg-white rounded-2xl shadow-xl border border-gray-200 p-6 z-50">
+                <div class="flex items-center justify-between mb-5">
+                  <span class="text-[15px] font-semibold text-gray-900">Phòng</span>
+                  <div class="flex items-center gap-3">
+                    <button type="button" onclick="adj('rooms',-1)" class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:border-blue-500 hover:text-blue-500">−</button>
+                    <span id="rooms-val" class="w-5 text-center font-semibold">1</span>
+                    <button type="button" onclick="adj('rooms',1)" class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-blue-500 hover:bg-blue-50">+</button>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mb-5">
+                  <div><p class="text-[15px] font-semibold text-gray-900">Người lớn</p><p class="text-xs text-gray-500">18 tuổi trở lên</p></div>
+                  <div class="flex items-center gap-3">
+                    <button type="button" onclick="adj('adults',-1)" class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:border-blue-500 hover:text-blue-500">−</button>
+                    <span id="adults-val" class="w-5 text-center font-semibold">2</span>
+                    <button type="button" onclick="adj('adults',1)" class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-blue-500 hover:bg-blue-50">+</button>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div><p class="text-[15px] font-semibold text-gray-900">Trẻ em</p><p class="text-xs text-gray-500">0–17 tuổi</p></div>
+                  <div class="flex items-center gap-3">
+                    <button type="button" onclick="adj('children',-1)" class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:border-blue-500 hover:text-blue-500">−</button>
+                    <span id="children-val" class="w-5 text-center font-semibold">0</span>
+                    <button type="button" onclick="adj('children',1)" class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-blue-500 hover:bg-blue-50">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="w-full mt-2 lg:w-48 lg:mx-auto bg-blue-600 hover:bg-blue-700 text-white font-bold h-14 rounded-full transition-all shadow-lg text-[16px]">
+            TÌM KIẾM
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ POPULAR DESTINATIONS (horizontal scroll) ═══════════ -->
+<section class="py-10 bg-white" id="destinations">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <h2 class="text-[22px] md:text-2xl font-bold text-slate-900 mb-6">Các điểm đến thu hút nhất Việt Nam</h2>
+    <div class="relative group">
+      <button onclick="scrollCarousel('dest-scroll',-300)" class="carousel-btn absolute left-0 top-[40%] -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-all">◀</button>
+      <button onclick="scrollCarousel('dest-scroll',300)"  class="carousel-btn absolute right-0 top-[40%] -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-all">▶</button>
+      <div id="dest-scroll" class="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 pt-1 px-1"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ COUPON SECTION ═══════════ -->
+<section class="py-8 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-2xl text-[#003580]">🎁</span>
+      <h2 class="text-2xl font-bold text-[#003580]">Phiếu giảm giá 10% cho người dùng mới</h2>
+    </div>
+    <div class="relative group">
+      <button onclick="scrollCarousel('coupon-scroll',-360)" class="carousel-btn absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-blue-500 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-all">◀</button>
+      <button onclick="scrollCarousel('coupon-scroll',360)"  class="carousel-btn absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-blue-500 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-all">▶</button>
+      <div id="coupon-scroll" class="flex gap-4 overflow-x-auto snap-x scrollbar-hide py-2 px-1"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FEATURED HOTELS ═══════════ -->
+<section class="py-12 bg-white">
+  <div class="max-w-[1140px] mx-auto px-4 sm:px-6">
+    <h2 class="text-[24px] font-bold text-slate-800 tracking-tight mb-8">Những chỗ nghỉ nổi bật được đề xuất cho quý khách:</h2>
+    <!-- City filter tabs -->
+    <div class="flex items-end justify-between border-b border-gray-100 mb-8 gap-4">
+      <div class="flex items-center gap-6 overflow-x-auto scrollbar-hide" id="city-tabs"></div>
+      <a href="hotels.html" id="city-link" class="text-[#006ce4] hover:underline text-[15px] font-semibold flex items-center mb-3 whitespace-nowrap">
+        Xem thêm các chỗ nghỉ ›
+      </a>
+    </div>
+    <div class="relative group">
+      <button onclick="scrollCarousel('hotel-scroll',-320)" class="carousel-btn absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-11 h-11 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-all">◀</button>
+      <button onclick="scrollCarousel('hotel-scroll',320)"  class="carousel-btn absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-11 h-11 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-all">▶</button>
+      <div id="hotel-scroll" class="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FEATURED TOURS ═══════════ -->
+<section class="py-12 bg-white">
+  <div class="max-w-[1140px] mx-auto px-4 sm:px-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-[22px] font-bold text-slate-800 tracking-tight">Top Tour Được Đánh Giá Cao Nhất</h2>
+      <a href="tours.html" class="text-gray-500 hover:text-gray-900 text-[14px] flex items-center font-medium">Xem thêm ›</a>
+    </div>
+    <div class="relative group">
+      <button onclick="scrollCarousel('tour-scroll',-320)" class="carousel-btn absolute left-0 top-1/2 -translate-y-[60%] -translate-x-4 z-10 w-11 h-11 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-all">◀</button>
+      <button onclick="scrollCarousel('tour-scroll',320)"  class="carousel-btn absolute right-0 top-1/2 -translate-y-[60%] translate-x-4 z-10 w-11 h-11 bg-white border border-gray-200 rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-gray-50 opacity-0 group-hover:opacity-100 transition-all">▶</button>
+      <div id="tour-scroll" class="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 px-1"></div>
+    </div>
+  </div>
+</section>
+
+<div id="tw-footer"></div>
+<script src="../js/currency.js"></script>
+<script src="../js/components.js"></script>
+<script>
+injectNavbar('home'); injectFooter();
+
+// ── Date defaults
+const today=new Date(),tom=new Date(today);tom.setDate(today.getDate()+1);
+document.getElementById('checkin').value=today.toISOString().split('T')[0];
+document.getElementById('checkout').value=tom.toISOString().split('T')[0];
+
+// ── Tabs
+let activeTab='hotels';
+function setTab(t){
+  activeTab=t;
+  ['hotels','tours'].forEach(id=>{
+    const btn=document.getElementById('tab-'+id);
+    const on=id===t;
+    btn.classList.toggle('text-blue-600',on);btn.classList.toggle('border-blue-600',on);
+    btn.classList.toggle('text-gray-600',!on);btn.classList.toggle('border-transparent',!on);
+  });
+  document.getElementById('dest').placeholder=t==='hotels'?'Bạn muốn đi đâu hoặc tên khách sạn?':'Tìm kiếm điểm đến tour du lịch...';
+}
+
+// ── Guest dropdown
+let G={rooms:1,adults:2,children:0};
+function toggleGuest(){document.getElementById('guest-dropdown').classList.toggle('open');}
+function adj(k,v){
+  if(k==='rooms'&&G.rooms+v<1||k==='adults'&&G.adults+v<1||k==='children'&&G.children+v<0) return;
+  G[k]+=v;
+  document.getElementById(k+'-val').textContent=G[k];
+  document.getElementById('guest-label').textContent=G.adults+' người lớn'+(G.children?', '+G.children+' trẻ em':'');
+  document.getElementById('room-label').textContent=G.rooms+' phòng';
+}
+document.addEventListener('click',e=>{
+  if(!document.getElementById('guest-wrap').contains(e.target)) document.getElementById('guest-dropdown').classList.remove('open');
+});
+
+// ── Search
+function doSearch(e){if(e)e.preventDefault();const q=document.getElementById('dest').value;window.location.href=(activeTab==='hotels'?'hotels.html':'tours.html')+(q?'?search='+encodeURIComponent(q):'');}
+
+// ── Carousel scroll
+function scrollCarousel(id,px){document.getElementById(id).scrollBy({left:px,behavior:'smooth'});}
+
+// ── Rating helpers
+function getRatingLabel(s){return s>=9.5?'Xuất sắc':s>=9?'Tuyệt hảo':s>=8.5?'Rất tốt':s>=8?'Tốt':'Hài lòng';}
+function fmtVND(usd){return (usd*23000).toLocaleString('vi-VN');}
+
+// ── TravelCard (Booking.com style)
+function travelCard(item,type){
+  const isTour=type==='tour';
+  const title=isTour?item.title:item.name;
+  const info=isTour?item.duration:item.feature;
+  const price=isTour?item.pricePerPerson:item.pricePerNight;
+  const unit=isTour?'mỗi người':'mỗi đêm';
+  const href=(isTour?'tour-detail.html?id=':'hotel-detail.html?id=')+item.id;
+  const priceVND=fmtVND(price);
+  const strikeVND=fmtVND(price*(item.discount?1/(1-item.discount/100):1.2));
+  const r=Number(item.rating)||9;
+  return `<a href="${href}" class="flex snap-start w-[calc(100vw-2rem)] sm:w-[calc(50%-8px)] md:w-[calc(33.33%-11px)] lg:w-[calc(25%-12px)] flex-shrink-0 no-underline">
+    <div class="bg-white rounded-lg overflow-hidden border border-slate-200 hover:shadow-md transition-shadow group h-full flex flex-col w-full">
+      <div class="relative h-48 shrink-0 overflow-hidden">
+        <img src="${item.img}" alt="${title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/>
+        <button class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-900 shadow-sm hover:text-red-500 transition-colors z-10">♡</button>
+      </div>
+      <div class="p-3 flex flex-col flex-grow">
+        <div class="flex items-center gap-1 mb-1">
+          <div class="bg-[#003580] text-white text-[10px] font-bold px-1 rounded flex items-center h-4">Genius</div>
+        </div>
+        <h4 class="font-bold text-[15px] text-slate-900 leading-tight mb-1 line-clamp-2" style="min-height:40px">${title}</h4>
+        <p class="text-[12px] text-slate-500 mb-2 truncate">${item.location||''} • ${info||''}</p>
+        <div class="flex items-center gap-2 mb-3">
+          <div class="bg-[#003580] text-white font-bold text-[12px] w-7 h-7 flex items-center justify-center rounded-tl-lg rounded-tr-lg rounded-br-lg flex-shrink-0">${r.toString().replace('.',',')}</div>
+          <div class="flex flex-col">
+            <span class="text-[12px] font-bold text-slate-900 leading-none">${getRatingLabel(r)}</span>
+            <span class="text-[11px] text-slate-500">${item.reviewCount||'0'} đánh giá</span>
+          </div>
+        </div>
+        <div class="mt-auto pt-2 flex flex-col items-end">
+          <span class="text-[11px] text-slate-500 mb-0.5">${unit}</span>
+          <span class="text-[11px] text-red-600 line-through">VND ${strikeVND}</span>
+          <span class="text-[16px] font-bold text-slate-900">VND ${priceVND}</span>
+        </div>
+      </div>
+    </div>
+  </a>`;
+}
+
+// ── Destinations (square cards)
+const DESTS=[
+  {id:1,city:'Vũng Tàu',count:'6,329 chỗ ở',img:'https://images.unsplash.com/photo-1580971032822-2e673070cdfc?w=400&h=400&fit=crop'},
+  {id:2,city:'Đà Lạt',count:'5,165 chỗ ở',img:'https://images.unsplash.com/photo-1596414704771-80a5ba1e5052?w=400&h=400&fit=crop'},
+  {id:3,city:'Hồ Chí Minh',count:'15,546 chỗ ở',img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=400&h=400&fit=crop'},
+  {id:4,city:'Đà Nẵng',count:'5,534 chỗ ở',img:'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=400&h=400&fit=crop'},
+  {id:5,city:'Hà Nội',count:'10,744 chỗ ở',img:'https://images.unsplash.com/photo-1509030248408-9df835ea2e68?w=400&h=400&fit=crop'},
+  {id:6,city:'Nha Trang',count:'4,120 chỗ ở',img:'https://images.unsplash.com/photo-1582650588647-73238ca7f413?w=400&h=400&fit=crop'},
+];
+document.getElementById('dest-scroll').innerHTML=DESTS.map(d=>`
+  <a href="hotels.html?location=${encodeURIComponent(d.city)}" class="snap-start flex-shrink-0 w-36 md:w-44 group hover:-translate-y-1 transition-all duration-200 no-underline">
+    <div class="relative rounded-xl overflow-hidden mb-2">
+      <img src="${d.img}" alt="${d.city}" class="w-full h-36 md:h-44 object-cover group-hover:scale-105 transition duration-500"/>
+    </div>
+    <p class="font-bold text-slate-900 text-[14px] truncate">${d.city}</p>
+    <p class="text-[12px] text-slate-500">${d.count}</p>
+  </a>`).join('');
+
+// ── Coupons
+const COUPONS=[
+  {icon:'✈️',iconBg:'bg-blue-100',title:'Giảm đến 75,000 cho lần đặt vé máy b...',sub:'Áp dụng cho lần đặt đầu tiên trên ứng dụng Travelo...',code:'TVLKBANMOI'},
+  {icon:'🏨',iconBg:'bg-blue-800 text-white',title:'Giảm giá tới 250,000 cho lần đặt phòn...',sub:'Áp dụng cho lần đặt đầu tiên trên ứng dụng Travelo...',code:'TVLKBANMOI'},
+  {icon:'🎟',iconBg:'bg-red-400 text-white',title:'Giảm đến 10% cho lần đặt vé tham qu...',sub:'Áp dụng cho lần đặt đầu tiên trên ứng dụng Travelo...',code:'TVLKBANMOI'},
+  {icon:'✈️',iconBg:'bg-blue-100',title:'Giảm đến 100,000 cho khách hàng mới...',sub:'Áp dụng cho lần đặt đầu tiên trên ứng dụng Travelo...',code:'HELLO2026'},
+];
+document.getElementById('coupon-scroll').innerHTML=COUPONS.map(c=>`
+  <div class="snap-start min-w-[340px] max-w-[340px] bg-white rounded-xl shadow-[0_2px_15px_rgba(0,0,0,0.06)] border border-gray-100 flex flex-col relative overflow-hidden flex-shrink-0">
+    <div class="absolute top-1/2 -left-2 w-4 h-4 bg-gray-100 rounded-full -translate-y-1/2 z-10"></div>
+    <div class="absolute top-1/2 -right-2 w-4 h-4 bg-gray-100 rounded-full -translate-y-1/2 z-10"></div>
+    <div class="p-4 flex flex-col h-full">
+      <div class="flex items-start gap-3 pb-3">
+        <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${c.iconBg} text-sm">${c.icon}</div>
+        <div class="flex-1 pr-4">
+          <h3 class="font-bold text-[14px] leading-tight text-gray-900 mb-1 line-clamp-2">${c.title}</h3>
+          <p class="text-[12px] text-gray-500 leading-tight line-clamp-2">${c.sub}</p>
+        </div>
+        <span class="text-gray-400 text-xs absolute right-4 top-4 cursor-pointer">ⓘ</span>
+      </div>
+      <div class="mt-auto pt-3 border-t border-dashed border-gray-200 flex items-center justify-between">
+        <div class="flex items-center gap-1.5 text-gray-600 font-medium">
+          <span class="text-gray-400 text-sm">📋</span>
+          <span class="text-[13px]">${c.code}</span>
+        </div>
+        <button onclick="copyCode('${c.code}',this)" class="bg-[#e8f1fd] text-blue-600 hover:bg-blue-100 font-bold text-[13px] px-4 py-1.5 rounded-full transition-colors">Copy</button>
+      </div>
+    </div>
+  </div>`).join('');
+
+// ── City filter for hotels
+const CITIES=['Vũng Tàu','Đà Lạt','Hồ Chí Minh','Đà Nẵng','Hà Nội'];
+let activeCity='Vũng Tàu';
+document.getElementById('city-tabs').innerHTML=CITIES.map(c=>`
+  <button onclick="filterCity('${c}')" id="city-${c.replace(/\s/g,'_')}"
+    class="pb-3 text-[15px] font-medium transition-all whitespace-nowrap ${c===activeCity?'text-[#006ce4] border-b-2 border-[#006ce4]':'text-gray-600 hover:text-[#006ce4]'}">
+    ${c}
+  </button>`).join('');
+
+function filterCity(city){
+  activeCity=city;
+  CITIES.forEach(c=>{
+    const btn=document.getElementById('city-'+c.replace(/\s/g,'_'));
+    const on=c===city;
+    btn.className=`pb-3 text-[15px] font-medium transition-all whitespace-nowrap ${on?'text-[#006ce4] border-b-2 border-[#006ce4]':'text-gray-600 hover:text-[#006ce4]'}`;
+  });
+  document.getElementById('city-link').textContent='Xem thêm các chỗ nghỉ ('+city+') ›';
+  renderHotels();
+}
+
+function renderHotels(){
+  const filtered=DATA.hotels.filter(h=>h.location.includes(activeCity));
+  document.getElementById('hotel-scroll').innerHTML=filtered.length
+    ?filtered.map(h=>travelCard(h,'hotel')).join('')
+    :`<div class="py-10 text-center w-full text-gray-400">Chưa có chỗ nghỉ nào tại ${activeCity} được đề xuất.</div>`;
+}
+
+// ── Tours
+document.getElementById('tour-scroll').innerHTML=DATA.tours.map(t=>travelCard(t,'tour')).join('');
+
+// ── Copy code
+function copyCode(code,btn){navigator.clipboard.writeText(code).then(()=>{btn.textContent='Đã copy!';setTimeout(()=>btn.textContent='Copy',2000);});}
+
+renderHotels();
+</script>
+</body>
+</html>
