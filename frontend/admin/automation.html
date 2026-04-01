@@ -38,15 +38,40 @@
     </div>
   </main>
 </div>
+<script src="../js/api.js"></script>
 <script src="../js/components.js"></script>
 <script>
 injectAdminSidebar('automation.html');
 
 const WORKFLOWS = [
-  { name: 'Cross-sell: Gợi ý khách sạn sau đặt tour', status: true, trigger: 'Webhook POST /booking/tour', runs: 48, last: '10 phút trước' },
-  { name: 'Upsell: Email nâng cấp phòng', status: true, trigger: 'Webhook POST /booking/hotel', runs: 23, last: '2 giờ trước' },
-  { name: 'Email xác nhận đặt chỗ', status: true, trigger: 'Webhook POST /booking/confirm', runs: 124, last: '5 phút trước' }
+  { id: 1, name: 'Cross-sell: Gợi ý khách sạn sau đặt tour', status: true, trigger: 'POST /automation/webhook/booking-tour', runs: 48, last: '10 phút trước' },
+  { id: 2, name: 'Upsell: Email nâng cấp phòng', status: true, trigger: 'POST /automation/webhook/booking-hotel', runs: 23, last: '2 giờ trước' },
+  { id: 3, name: 'Email xác nhận đặt chỗ', status: true, trigger: 'POST /automation/webhook/booking-confirm', runs: 124, last: '5 phút trước' },
 ];
+let logs = [];
+
+async function loadWorkflows() {
+  try {
+    const res = await fetch(API_BASE + '/admin/automation/workflows', { headers: authHeaders() });
+    const json = await res.json();
+    if (json.success) {
+      json.data.forEach((w, i) => { if (WORKFLOWS[i]) { WORKFLOWS[i] = { ...WORKFLOWS[i], ...w }; } });
+    }
+  } catch (e) { /* offline: dùng mock */ }
+  renderWorkflows();
+}
+
+async function loadLogs() {
+  try {
+    const res = await fetch(API_BASE + '/admin/automation/logs', { headers: authHeaders() });
+    const json = await res.json();
+    if (json.success) {
+      logs = json.data;
+    }
+  } catch (e) { /* offline: dùng mock từ components.js */ }
+  renderLogs();
+}
+
 function renderWorkflows() {
   const el = document.getElementById('workflows-list');
   if (!el) return;
@@ -55,13 +80,19 @@ function renderWorkflows() {
           <div class="w-3 h-3 rounded-full ${w.status ? 'bg-emerald-500' : 'bg-slate-300'} flex-shrink-0"></div>
           <div class="flex-1 min-w-0">
             <p class="font-medium text-sm text-slate-800">${w.name}</p>
-            <p class="text-xs text-slate-400 mt-0.5">Trigger: <code class="bg-slate-100 px-1 rounded">${w.trigger}</code> · ${w.runs} lần chạy · Lần cuối: ${w.last}</p>
+            <p class="text-xs text-slate-400 mt-0.5">Webhook: <code class="bg-slate-100 px-1 rounded text-xs">${API_BASE}${w.trigger}</code></p>
+            <p class="text-xs text-slate-400">Đã chạy: ${w.runs} lần · Lần cuối: ${w.last}</p>
           </div>
-          <span class="text-xs font-semibold ${w.status ? 'text-emerald-600' : 'text-slate-400'}">${w.status ? '🟢 Active' : '⚫ Inactive'}</span>
+          <div class="text-right">
+            <span class="text-xs font-semibold ${w.status ? 'text-emerald-600' : 'text-slate-400'}">${w.status ? '🟢 Active' : '⚫ Inactive'}</span>
+            <a href="http://localhost:5678" target="_blank" class="block text-xs text-blue-500 hover:underline mt-1">⚡ Mở n8n</a>
+          </div>
         </div>`).join('');
 }
+
 function renderLogs(){
-  document.getElementById('log-table').innerHTML=DATA.logs.map(l=>`
+  const allLogs = logs.length > 0 ? logs : DATA.logs;
+  document.getElementById('log-table').innerHTML=allLogs.map(l=>`
   <tr class="border-b border-slate-100 hover:bg-slate-50">
     <td class="px-5 py-3 font-mono text-xs text-slate-400">${l.id}</td>
     <td class="px-5 py-3 text-sm text-slate-700">${l.event}</td>
@@ -69,12 +100,25 @@ function renderLogs(){
     <td class="px-5 py-3"><span class="text-xs font-semibold px-2.5 py-1 rounded-full ${(l.status==='success'||l.status==='completed')?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-600'}">${(l.status==='success'||l.status==='completed')?'✅ Thành công':'❌ Lỗi'}</span></td>
   </tr>`).join('');
 }
-function addLog(){
-  const id='LOG-'+String(DATA.logs.length+1).padStart(3,'0');
-  DATA.logs.unshift({id,event:'Test trigger thủ công',timestamp:new Date().toLocaleString('vi-VN'),status:'success'});
-  showToast('▶ Đã kích hoạt workflow test!');renderLogs();
+
+async function addLog(){
+  try {
+    const res = await fetch(API_BASE + '/admin/automation/logs', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'Test trigger thủ công', status: 'success' }),
+    });
+    const json = await res.json();
+    if (json.success) showToast('▶ Đã kích hoạt workflow test!');
+  } catch (e) {
+    showToast('❌ Lỗi kết nối server', 'error');
+    const id='LOG-'+String(DATA.logs.length+1).padStart(3,'0');
+    DATA.logs.unshift({id,event:'Test trigger thủ công',timestamp:new Date().toLocaleString('vi-VN'),status:'success'});
+  }
+  renderLogs();
 }
-renderWorkflows();
-renderLogs();
+
+loadWorkflows();
+loadLogs();
 </script>
 </body></html>

@@ -11,6 +11,7 @@ function setToken(t) { localStorage.setItem('tw_token', t); }
 function removeToken() { localStorage.removeItem('tw_token'); }
 function getUser() { return JSON.parse(localStorage.getItem('tw_user') || 'null'); }
 function setUser(u) { localStorage.setItem('tw_user', JSON.stringify(u)); }
+function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Accept': 'application/json' }; }
 
 /**
  * Lấy mảng từ JSON API: { data: [...] } hoặc pagination { data: { data: [...] } }

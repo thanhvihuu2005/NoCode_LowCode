@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\PromoCodeController;
 use App\Http\Controllers\Admin\RecommendationController;
+use App\Http\Controllers\Admin\AutomationController;
 
 use App\Http\Controllers\Api\HotelController as PublicHotelController;
 use App\Http\Controllers\Api\TourController as PublicTourController;
@@ -107,6 +108,16 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/promo-codes/{id}',[PromoCodeController::class, 'update']);
         Route::delete('/promo-codes/{id}',[PromoCodeController::class, 'destroy']);
     });
+
+    // ── Admin: Automation ────────────────────────────────────
+    Route::prefix('admin')->group(function () {
+        Route::get('/automation/workflows', [AutomationController::class, 'workflows']);
+        Route::get('/automation/logs',      [AutomationController::class, 'logs']);
+        Route::post('/automation/logs',     [AutomationController::class, 'storeLog']);
+    });
+
+    // ── Webhook (public — n8n gọi vào đây) ──────────────────
+    Route::post('/automation/webhook/{type}', [AutomationController::class, 'handleWebhook']);
 
     // ── Admin: Recommendations ──────────────────────────────
     Route::prefix('admin')->group(function () {
