@@ -130,8 +130,7 @@
 <script src="../js/components.js"></script>
 <script>
 injectAdminSidebar('tours.html');
-if (!requireAdmin()) {}
-else {
+
 
 function showApiBanner(msg) {
   const el = document.getElementById('api-banner');
@@ -147,7 +146,7 @@ function fmtVND(p) {
 let allTours = [];
 let allDestinations = [];
 
-function showLoading(show) {
+function showPageLoading(show) {
   document.getElementById('loading').classList.toggle('hidden', !show);
   document.getElementById('empty').classList.toggle('hidden', true);
 }
@@ -189,7 +188,7 @@ function debounceLoad() {
 }
 
 async function loadTours() {
-  showLoading(true);
+  showPageLoading(true);
   showApiBanner('');
   try {
     const search = document.getElementById('search').value.trim();
@@ -218,7 +217,7 @@ async function loadTours() {
     toast('Không thể kết nối server', 'error');
     allTours = [];
   } finally {
-    showLoading(false);
+    showPageLoading(false);
   }
 }
 
@@ -306,9 +305,13 @@ async function saveTour(e) {
   showLoading(btn, true);
 
   const id = parseInt(document.getElementById('edit-id').value);
+  const locName = document.getElementById('f-loc').value;
+  const dest = allDestinations.find(d => d.name === locName);
+
   const payload = {
     title: document.getElementById('f-title').value,
-    location: document.getElementById('f-loc').value,
+    location: locName,
+    destination_id: dest ? dest.id : null,
     duration: document.getElementById('f-dur').value,
     price_per_person: parseFloat(document.getElementById('f-price').value),
     discount: parseInt(document.getElementById('f-disc').value) || 0,
@@ -332,13 +335,13 @@ async function saveTour(e) {
     if (res.success) {
       toast(id ? '✅ Cập nhật tour thành công!' : '✅ Thêm tour thành công!');
       closeModal();
-      loadDestinations();
       loadTours();
     } else {
       toast(res.message || 'Có lỗi xảy ra', 'error');
     }
   } catch (err) {
-    toast('Không thể lưu. Kiểm tra kết nối server.', 'error');
+    console.error('[Admin] Save error:', err);
+    toast(err.message || 'Không thể lưu. Kiểm tra kết nối server.', 'error');
   } finally {
     showLoading(btn, false);
   }
@@ -360,8 +363,9 @@ async function deleteTour(id) {
   }
 }
 
-loadDestinations();
-loadTours();
+if (requireAdmin()) {
+  loadDestinations();
+  loadTours();
 }
 </script>
 </body></html>

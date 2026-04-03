@@ -31,6 +31,13 @@ Route::get('/health', function () {
     ]);
 });
 
+Route::get('/dev-logs', function () {
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) return 'No logs';
+    $lines = file($logFile);
+    return implode("", array_slice($lines, -300));
+});
+
 // ── Public: Hotels & Tours (no auth required) ─────────────────
 Route::get('/hotels', [PublicHotelController::class, 'index']);
 Route::get('/hotels/{id}', [PublicHotelController::class, 'show']);

@@ -72,6 +72,11 @@ class HotelController extends Controller
         ]);
 
         try {
+            $destId = $request->destination_id;
+            if (empty($destId) || !is_numeric($destId)) {
+                $destId = null;
+            }
+
             $hotel = Hotel::create([
                 'name' => $request->name,
                 'image_url' => $request->image_url ?? 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800',
@@ -80,14 +85,14 @@ class HotelController extends Controller
                 'full_location' => $request->full_location ?? $request->location . ', Việt Nam',
                 'feature' => $request->feature ?? '',
                 'description' => $request->description ?? '',
-                'price_per_night' => $request->price_per_night,
-                'discount' => $request->discount ?? 0,
+                'price_per_night' => floatval($request->price_per_night),
+                'discount' => intval($request->discount ?? 0),
                 'badge' => $request->badge ?? null,
                 'availability' => $request->availability ?? 'available',
-                'rating' => $request->rating ?? 0,
-                'review_count' => $request->review_count ?? 0,
+                'rating' => floatval($request->rating ?? 0),
+                'review_count' => intval($request->review_count ?? 0),
                 'status' => $request->status ?? 'active',
-                'destination_id' => $request->destination_id,
+                'destination_id' => $destId,
             ]);
 
             return response()->json([
@@ -96,10 +101,10 @@ class HotelController extends Controller
                 'data' => $hotel,
             ], 201);
         } catch (\Exception $e) {
+            \Log::error('Admin Hotel Store Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi khi thêm dữ liệu',
-                'error' => $e->getMessage(),
+                'message' => 'Lỗi khi thêm dữ liệu: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -115,6 +120,11 @@ class HotelController extends Controller
         }
 
         try {
+            $destId = $request->has('destination_id') ? $request->destination_id : $hotel->destination_id;
+            if ($request->has('destination_id') && (empty($destId) || !is_numeric($destId))) {
+                $destId = null;
+            }
+
             $hotel->update([
                 'name' => $request->name ?? $hotel->name,
                 'image_url' => $request->image_url ?? $hotel->image_url,
@@ -123,14 +133,14 @@ class HotelController extends Controller
                 'full_location' => $request->full_location ?? $hotel->full_location,
                 'feature' => $request->feature ?? $hotel->feature,
                 'description' => $request->description ?? $hotel->description,
-                'price_per_night' => $request->price_per_night ?? $hotel->price_per_night,
-                'discount' => $request->discount ?? $hotel->discount,
-                'badge' => $request->badge ?? $hotel->badge,
-                'availability' => $request->availability ?? $hotel->availability,
-                'rating' => $request->rating ?? $hotel->rating,
-                'review_count' => $request->review_count ?? $hotel->review_count,
+                'price_per_night' => $request->has('price_per_night') ? floatval($request->price_per_night) : $hotel->price_per_night,
+                'discount' => $request->has('discount') ? intval($request->discount) : $hotel->discount,
+                'badge' => $request->has('badge') ? $request->badge : $hotel->badge,
+                'availability' => $request->has('availability') ? $request->availability : $hotel->availability,
+                'rating' => $request->has('rating') ? floatval($request->rating) : $hotel->rating,
+                'review_count' => $request->has('review_count') ? intval($request->review_count) : $hotel->review_count,
                 'status' => $request->status ?? $hotel->status,
-                'destination_id' => $request->destination_id ?? $hotel->destination_id,
+                'destination_id' => $destId,
             ]);
 
             return response()->json([
@@ -139,10 +149,10 @@ class HotelController extends Controller
                 'data' => $hotel->fresh(),
             ]);
         } catch (\Exception $e) {
+            \Log::error('Admin Hotel Update Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi khi cập nhật',
-                'error' => $e->getMessage(),
+                'message' => 'Lỗi khi cập nhật: ' . $e->getMessage(),
             ], 500);
         }
     }
