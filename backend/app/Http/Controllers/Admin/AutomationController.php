@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\AutomationLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Http;
 
 class AutomationController extends Controller
 {
@@ -70,5 +72,36 @@ class AutomationController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function testTrigger(Request $request)
+    {
+        try {
+            // Lấy ngẫu nhiên 1 trong 3 luồng để biểu diễn test
+            $paths = ['booking-tour', 'upsell-vip', 'retention-tour'];
+            $randomPath = $paths[array_rand($paths)];
+
+            $response = Http::post('http://127.0.0.1:5678/webhook/' . $randomPath, [
+                'customer_email' => 'test' . rand(100, 999) . '@gmail.com',
+                'tour_id' => 1,
+                'destination_id' => 1,
+                'service_type' => 'tour'
+            ]);
+
+            if ($response->successful()) {
+                // Tạo log để lưu xuống DB hiển thị ra màn hình
+                \App\Models\AutomationLog::create([
+                    'event' => 'Kích hoạt qua ' . $randomPath,
+                    'payload' => json_encode(['path' => $randomPath]),
+                    'status' => 'success'
+                ]);
+
+                return response()->json(['success' => true, 'message' => 'Triggered n8n successfully']);
+            }
+            
+            return response()->json(['success' => false, 'message' => 'n8n returned ' . $response->status()], 500);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Cannot connect to n8n: ' . $e->getMessage()], 500);
+        }
     }
 }

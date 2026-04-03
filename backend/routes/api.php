@@ -114,6 +114,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/automation/workflows', [AutomationController::class, 'workflows']);
         Route::get('/automation/logs',      [AutomationController::class, 'logs']);
         Route::post('/automation/logs',     [AutomationController::class, 'storeLog']);
+        Route::post('/automation/test-trigger', [AutomationController::class, 'testTrigger']);
     });
 
     // ── Webhook (public — n8n gọi vào đây) ──────────────────

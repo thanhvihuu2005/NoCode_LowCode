@@ -1,0 +1,78 @@
+{
+  "name": "Workflow 1: Đặt Tour -> Gợi ý Khách sạn",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "booking-tour",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [ 200, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:8000/api/admin/bookings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer YOUR_TOKEN" }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Bookings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 400, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:8000/api/admin/hotels",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer YOUR_TOKEN" }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Hotels",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 600, 300 ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const hotels = items[0].json.data || [];\nhotels.sort((a,b) => b.rating - a.rating);\nconst top3 = hotels.slice(0, 3);\n\nreturn [{ json: { emailHtml: '<h3>Gợi ý khách sạn tốt nhất cho bạn:</h3><ul>' + top3.map(h => '<li>' + h.name + '</li>').join('') + '</ul>' } }];"
+      },
+      "name": "Logic & Format HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [ 800, 300 ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@travelwise.local",
+        "toEmail": "customer@example.com",
+        "subject": "Gợi ý khách sạn cho chuyến đi của bạn!",
+        "html": "={{$json.emailHtml}}",
+        "options": {}
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [ 1000, 300 ]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [ [ { "node": "Get Bookings", "type": "main", "index": 0 } ] ] },
+    "Get Bookings": { "main": [ [ { "node": "Get Hotels", "type": "main", "index": 0 } ] ] },
+    "Get Hotels": { "main": [ [ { "node": "Logic & Format HTML", "type": "main", "index": 0 } ] ] },
+    "Logic & Format HTML": { "main": [ [ { "node": "Send Email", "type": "main", "index": 0 } ] ] }
+  }
+}

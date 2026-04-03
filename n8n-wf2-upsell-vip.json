@@ -1,0 +1,78 @@
+{
+  "name": "Workflow 2: Upsell VIP",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upsell-vip",
+        "options": {}
+      },
+      "name": "Webhook (Kích hoạt)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [ 200, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/api/admin/bookings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Bookings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 400, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8000/api/admin/tours",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Tours",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 600, 300 ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { emailHtml: '<h3>Cơ hội nâng cấp gói VIP</h3><p>Chỉ với một khoản phí nhỏ, bạn có thể trải nghiệm Limousine và bữa tối sang trọng!</p>' } }];"
+      },
+      "name": "Logic & Format HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [ 800, 300 ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@travelwise.local",
+        "toEmail": "customer@example.com",
+        "subject": "Mời nâng cấp gói VIP",
+        "html": "={{$json.emailHtml}}",
+        "options": {}
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [ 1000, 300 ]
+    }
+  ],
+  "connections": {
+    "Webhook (Kích hoạt)": { "main": [ [ { "node": "Get Bookings", "type": "main", "index": 0 } ] ] },
+    "Get Bookings": { "main": [ [ { "node": "Get Tours", "type": "main", "index": 0 } ] ] },
+    "Get Tours": { "main": [ [ { "node": "Logic & Format HTML", "type": "main", "index": 0 } ] ] },
+    "Logic & Format HTML": { "main": [ [ { "node": "Send Email", "type": "main", "index": 0 } ] ] }
+  }
+}

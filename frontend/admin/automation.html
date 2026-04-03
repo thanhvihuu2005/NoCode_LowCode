@@ -91,7 +91,13 @@ function renderWorkflows() {
 }
 
 function renderLogs(){
-  const allLogs = logs.length > 0 ? logs : DATA.logs;
+  const allLogs = logs; // Xóa bỏ fallback sang mảng DATA ảo
+
+  if (allLogs.length === 0) {
+     document.getElementById('log-table').innerHTML = '<tr><td colspan="4" class="text-center px-5 py-8 text-slate-400">Chưa có lịch sử chạy thực tế nào được lưu trong cơ sở dữ liệu.</td></tr>';
+     return;
+  }
+
   document.getElementById('log-table').innerHTML=allLogs.map(l=>`
   <tr class="border-b border-slate-100 hover:bg-slate-50">
     <td class="px-5 py-3 font-mono text-xs text-slate-400">${l.id}</td>
@@ -101,21 +107,25 @@ function renderLogs(){
   </tr>`).join('');
 }
 
-async function addLog(){
+async function addLog() {
   try {
-    const res = await fetch(API_BASE + '/admin/automation/logs', {
+    // Gọi qua Backend để xử lý CORS và proxy sang n8n
+    const res = await fetch(API_BASE + '/admin/automation/test-trigger', {
       method: 'POST',
       headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'Test trigger thủ công', status: 'success' }),
+      body: JSON.stringify({}),
     });
+    
     const json = await res.json();
-    if (json.success) showToast('▶ Đã kích hoạt workflow test!');
+    if (res.ok && json.success) {
+      showToast('▶ Đã kích hoạt workflow n8n thành công qua server!');
+      setTimeout(loadLogs, 1500); // 1.5s sau reload log từ DB
+    } else {
+      showToast('⚠️ Gặp lỗi: ' + (json.message || res.statusText), 'error');
+    }
   } catch (e) {
-    showToast('❌ Lỗi kết nối server', 'error');
-    const id='LOG-'+String(DATA.logs.length+1).padStart(3,'0');
-    DATA.logs.unshift({id,event:'Test trigger thủ công',timestamp:new Date().toLocaleString('vi-VN'),status:'success'});
+    showToast('❌ Không kết nối được server máy chủ', 'error');
   }
-  renderLogs();
 }
 
 loadWorkflows();
