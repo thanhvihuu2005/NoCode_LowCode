@@ -1,80 +1,103 @@
-<!DOCTYPE html><html lang="vi"><head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Chi tiết tour | TravelWise</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="../design-system/colors.css">
-<link rel="stylesheet" href="../design-system/components.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','sans-serif']}}}}</script>
-<style>
-body{font-family:'Inter',sans-serif;}
-.scrollbar-hide{scrollbar-width:none;-ms-overflow-style:none}
-.scrollbar-hide::-webkit-scrollbar{display:none}
-</style>
-</head><body class="bg-slate-50">
-<div id="tw-navbar"></div>
-<div id="content" class="max-w-6xl mx-auto px-4 py-10"></div>
-<div id="tw-footer"></div>
-<script src="../js/api.js"></script>
-<script src="../js/components.js"></script>
-<script src="../js/lightbox.js"></script>
-<script src="../js/comments.js"></script>
-<script>
-function fmtVND(p) {
-  if (isNaN(p) || p == null) return '0₫';
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(p);
-}
+<!DOCTYPE html>
+<html lang="vi">
 
-injectNavbar(); injectFooter();
-const draft=JSON.parse(localStorage.getItem('tw_booking_draft')||'{}');
-const id=parseInt(new URLSearchParams(location.search).get('id')||'1');
-const t=DATA.tours.find(x=>x.id===id)||DATA.tours[0];
-const fp=Math.round(t.pricePerPerson*(1-t.discount/100));
-document.title=t.title+' | TravelWise';
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chi tiết tour | TravelWise</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../design-system/colors.css">
+  <link rel="stylesheet" href="../design-system/components.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
 
-// Tour gallery images
-const tourImages = [
-  {
-    src: t.img,
-    thumb: t.img,
-    title: t.title,
-    description: 'Ảnh chính của tour'
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200',
-    thumb: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=300',
-    title: 'Cảnh đẹp Amalfi',
-    description: 'Khung cảnh tuyệt đẹp của bờ biển Amalfi'
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1531310197839-ccf54634509e?w=1200',
-    thumb: 'https://images.unsplash.com/photo-1531310197839-ccf54634509e?w=300',
-    title: 'Núi Alps',
-    description: 'Dãy núi Alps hùng vĩ'
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200',
-    thumb: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=300',
-    title: 'Kyoto cổ kính',
-    description: 'Kiến trúc truyền thống Nhật Bản'
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1504457047772-27fad17af0ec?w=1200',
-    thumb: 'https://images.unsplash.com/photo-1504457047772-27fad17af0ec?w=300',
-    title: 'Sapa mờ sương',
-    description: 'Cảnh sắc Sapa trong sương mù'
-  }
-];
+    .scrollbar-hide {
+      scrollbar-width: none;
+      -ms-overflow-style: none
+    }
 
-document.getElementById('content').innerHTML=`
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50">
+  <div id="tw-navbar"></div>
+  <div id="content" class="max-w-6xl mx-auto px-4 py-10"></div>
+  <div id="tw-footer"></div>
+  <script src="../js/api.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/lightbox.js"></script>
+  <script src="../js/comments.js"></script>
+  <script>
+    let t = null;
+    let fp = 0;
+    let tourImages = [];
+
+    async function loadTourDetail() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+      if (!id) { location.href = 'tours.html'; return; }
+
+      const content = document.getElementById('content');
+      content.innerHTML = '<div class="py-20 text-center text-slate-500">Đang tải thông tin tour...</div>';
+
+      try {
+        const res = await Tours.get(id);
+        if (!res.success || !res.data) throw new Error('Không tìm thấy tour');
+
+        t = res.data;
+        fp = t.finalPrice || Math.round(t.pricePerPerson * (1 - (t.discount || 0) / 100));
+        document.title = t.name + ' | TravelWise';
+
+        // Tour gallery images from API or defaults
+        tourImages = t.images || [
+          { src: t.img, thumb: t.img, title: t.name, description: 'Ảnh chính của tour' }
+        ];
+
+        renderTour();
+
+        // Initialize comments system
+        if (typeof CommentsSystem !== 'undefined') {
+          const commentsSystem = new CommentsSystem('tour', t.id);
+          commentsSystem.render('comments-section');
+        }
+
+        // Restore draft if any
+        const draft = JSON.parse(localStorage.getItem('tw_booking_draft') || '{}');
+        if (draft.id == t.id) {
+          if (draft.departure) {
+            const dep = document.getElementById('departure');
+            if (dep) { dep.value = draft.departure; onDepartureChange(); }
+          }
+          if (draft.guests) {
+            const sel = document.getElementById('t-guests');
+            if (sel) { sel.value = draft.guests; onGuestChange(); }
+          }
+        }
+        calcTourTotal();
+
+      } catch (err) {
+        console.error(err);
+        content.innerHTML = `<div class="py-20 text-center text-red-500">Lỗi: ${err.message || 'Không thể tải dữ liệu'}</div>`;
+      }
+    }
+
+    function renderTour() {
+      document.getElementById('content').innerHTML = `
 <a href="tours.html" class="text-sm text-blue-600 hover:underline mb-4 inline-block">← Quay lại danh sách</a>
 <div class="grid lg:grid-cols-3 gap-8">
   <div class="lg:col-span-2">
     <!-- Image Gallery -->
     <div class="mb-6">
       <div class="relative rounded-3xl overflow-hidden mb-4">
-        <img src="${t.img}" alt="${t.title}" class="w-full h-80 object-cover cursor-pointer" onclick="openLightbox(tourImages, 0)"/>
-        ${t.badge?`<span class="absolute top-4 left-4 bg-blue-500 text-white text-sm font-bold px-3 py-1.5 rounded-xl">${t.badge}</span>`:''}
+        <img src="${t.img}" alt="${t.name}" class="w-full h-80 object-cover cursor-pointer" onclick="openLightbox(tourImages, 0)"/>
+        ${t.badge ? `<span class="absolute top-4 left-4 bg-blue-500 text-white text-sm font-bold px-3 py-1.5 rounded-xl">${t.badge}</span>` : ''}
         <span class="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-1.5 rounded-xl">⏱ ${t.duration}</span>
         <button onclick="openLightbox(tourImages, 0)" class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center">
           <div class="bg-white/20 backdrop-blur-sm rounded-full p-3 opacity-0 hover:opacity-100 transition-opacity">
@@ -85,20 +108,21 @@ document.getElementById('content').innerHTML=`
       
       <!-- Thumbnail gallery -->
       <div class="flex gap-2 overflow-x-auto scrollbar-hide">
-        ${tourImages.slice(1).map((img, index) => `
+        ${tourImages.slice(1, 6).map((img, index) => `
           <button onclick="openLightbox(tourImages, ${index + 1})" class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-400 transition-colors">
             <img src="${img.thumb}" alt="${img.title}" class="w-full h-full object-cover">
           </button>
         `).join('')}
+        ${tourImages.length > 6 ? `
         <button onclick="openLightbox(tourImages, 0)" class="flex-shrink-0 w-20 h-20 rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 hover:border-blue-400 transition-colors flex items-center justify-center text-slate-500 hover:text-blue-600">
-          <span class="text-xs text-center">+${tourImages.length}<br>ảnh</span>
-        </button>
+          <span class="text-xs text-center">+${tourImages.length - 1}<br>ảnh</span>
+        </button>` : ''}
       </div>
     </div>
 
-    <h1 class="text-3xl font-bold text-slate-800 mb-2">${t.title}</h1>
+    <h1 class="text-3xl font-bold text-slate-800 mb-2">${t.name}</h1>
     <div class="flex flex-wrap items-center gap-3 mb-6">
-      <span class="text-slate-500">📍 ${t.fullLocation}</span>
+      <span class="text-slate-500">📍 ${t.fullLocation || t.location}</span>
       <span class="bg-emerald-500 text-white text-sm font-bold px-2.5 py-1 rounded-lg">⭐ ${t.rating}</span>
       <span class="text-slate-500 text-sm">${t.reviewCount} đánh giá</span>
     </div>
@@ -111,14 +135,14 @@ document.getElementById('content').innerHTML=`
     <div class="bg-white rounded-2xl p-5 border border-slate-200 mb-4">
       <h2 class="font-bold text-lg mb-3">Đã bao gồm</h2>
       <div class="flex flex-wrap gap-2">
-        ${t.includes.split(',').map(s=>`<span class="bg-blue-50 text-blue-700 text-sm px-3 py-1.5 rounded-xl">✓ ${s.trim()}</span>`).join('')}
+        ${(t.includes || '').split(',').map(s => `<span class="bg-blue-50 text-blue-700 text-sm px-3 py-1.5 rounded-xl">✓ ${s.trim()}</span>`).join('')}
       </div>
     </div>
     
     <div class="bg-white rounded-2xl p-5 border border-slate-200 mb-6">
       <h2 class="font-bold text-lg mb-3">Khám phá thêm</h2>
       <div class="grid grid-cols-2 gap-2">
-        ${['🛡️ Bảo hiểm du lịch','🚌 Xe đưa đón','🎧 Hướng dẫn viên','📷 Chụp ảnh lưu niệm','🍽️ Bữa ăn','🏨 Khách sạn'].map(a=>`<span class="text-sm text-slate-600 bg-slate-50 rounded-xl px-3 py-2">${a}</span>`).join('')}
+        ${['🛡️ Bảo hiểm du lịch', '🚌 Xe đưa đón', '🎧 Hướng dẫn viên', '📷 Chụp ảnh lưu niệm', '🍽️ Bữa ăn', '🏨 Khách sạn'].map(a => `<span class="text-sm text-slate-600 bg-slate-50 rounded-xl px-3 py-2">${a}</span>`).join('')}
       </div>
     </div>
 
@@ -128,12 +152,10 @@ document.getElementById('content').innerHTML=`
   
   <div class="lg:col-span-1">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-lg p-6 sticky top-20">
-      <div class="mb-3">
-        ${t.discount?`<p class="text-slate-400 line-through text-sm">${fmtVND(t.pricePerPerson)}/người</p>`:''}
-        <p class="text-sm text-slate-500">Giá cơ bản <span class="font-semibold text-slate-700">${fmtVND(fp)}</span> × <span id="guest-count-label">1</span> người</p>
-        <p class="text-2xl font-extrabold text-blue-600 mt-1" id="total-price-display">${fmtVND(fp)}</p>
-        ${t.discount?`<span class="inline-block mt-1 bg-red-100 text-red-600 text-xs font-semibold px-2 py-0.5 rounded">-${t.discount}%</span>`:''}
-      </div>
+        ${t.discount ? `<p class="text-slate-400 line-through text-sm">Giá gốc: ${formatPrice(t.pricePerPerson)}/người</p>` : ''}
+        <p class="text-sm text-slate-500">Giá ưu đãi <span class="font-semibold text-slate-700">${formatPrice(fp)}</span> × <span id="guest-count-label">1</span> người</p>
+        <p class="text-2xl font-extrabold text-blue-600 mt-1" id="total-price-display">${formatPrice(fp)}</p>
+        ${t.discount ? `<span class="inline-block mt-1 bg-red-100 text-red-600 text-xs font-semibold px-2 py-0.5 rounded">Tiết kiệm ${t.discount}%</span>` : ''}
       <div class="space-y-3 mb-4">
         <div>
           <label class="text-xs font-semibold text-slate-500 block mb-1">Ngày khởi hành</label>
@@ -159,72 +181,65 @@ document.getElementById('content').innerHTML=`
     </div>
   </div>
 </div>`;
+    }
 
-// Initialize comments system
-const commentsSystem = new CommentsSystem('tour', id);
-commentsSystem.render('comments-section');
+    function calcTourTotal() {
+      const guests = parseInt(document.getElementById('t-guests')?.value) || 1;
+      const label = document.getElementById('guest-count-label');
+      if (label) label.textContent = guests;
+      const total = fp * guests;
+      const display = document.getElementById('total-price-display');
+      if (display) {
+        display.textContent = formatPrice(total);
+        display.className = `text-2xl font-extrabold ${guests > 0 ? 'text-blue-600' : 'text-slate-300'}`;
+      }
+      const btn = document.getElementById('btn-book');
+      if (btn) btn.disabled = guests <= 0;
+      return { guests, total };
+    }
 
-function calcTourTotal(){
-  const guests=parseInt(document.getElementById('t-guests')?.value)||1;
-  document.getElementById('guest-count-label').textContent=guests;
-  const total=fp*guests;
-  document.getElementById('total-price-display').textContent=fmtVND(total);
-  document.getElementById('total-price-display').className=`text-2xl font-extrabold ${guests>0?'text-blue-600':'text-slate-300'}`;
-  document.getElementById('btn-book').disabled=guests<=0;
-  return{guests,total};
-}
+    function parseDurationDays(dur) {
+      if (!dur) return 5;
+      const m = dur.match(/(\d+)/);
+      return m ? parseInt(m[1]) : 5;
+    }
 
-// Tính ngày về từ duration ( VD "5 NGÀY" → +4 ngày )
-function parseDurationDays(dur){
-  if(!dur) return 5;
-  const m=dur.match(/(\d+)/);
-  return m?parseInt(m[1]):5;
-}
+    function onDepartureChange() {
+      const dep = document.getElementById('departure')?.value;
+      const retEl = document.getElementById('return-date-display');
+      if (dep && retEl) {
+        const days = parseDurationDays(t.duration);
+        const retDate = new Date(new Date(dep).getTime() + (days - 1) * 864e5);
+        retEl.textContent = retDate.toLocaleDateString('vi-VN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+        retEl.className = 'w-full border border-slate-200 bg-emerald-50 rounded-xl px-3 py-2.5 text-sm text-emerald-700 font-medium';
+        calcTourTotal();
+      } else if (retEl) {
+        retEl.textContent = 'Chưa chọn ngày đi';
+        retEl.className = 'w-full border border-slate-100 bg-slate-50 rounded-xl px-3 py-2.5 text-sm text-slate-400';
+      }
+    }
 
-function onDepartureChange(){
-  const dep=document.getElementById('departure')?.value;
-  const retEl=document.getElementById('return-date-display');
-  if(dep){
-    const days=parseDurationDays(t.duration);
-    const retDate=new Date(new Date(dep).getTime()+(days-1)*864e5);
-    retEl.textContent=retDate.toLocaleDateString('vi-VN',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
-    retEl.className='w-full border border-slate-200 bg-emerald-50 rounded-xl px-3 py-2.5 text-sm text-emerald-700 font-medium';
-    calcTourTotal();
-  } else {
-    retEl.textContent='Chưa chọn ngày đi';
-    retEl.className='w-full border border-slate-100 bg-slate-50 rounded-xl px-3 py-2.5 text-sm text-slate-400';
-  }
-}
+    function onGuestChange() { calcTourTotal(); }
 
-function onGuestChange(){calcTourTotal();}
+    function doBook() {
+      if (!getToken()) { showToast('Vui lòng đăng nhập để đặt tour!', 'error'); setTimeout(() => location.href = 'login.html', 1000); return; }
+      const dep = document.getElementById('departure')?.value;
+      if (!dep) { showToast('Vui lòng chọn ngày khởi hành!', 'error'); return; }
+      const { guests, total } = calcTourTotal();
+      const days = parseDurationDays(t.duration);
+      const retDate = new Date(new Date(dep).getTime() + (days - 1) * 864e5);
+      localStorage.setItem('tw_booking_draft', JSON.stringify({
+        type: 'tour', id: t.id, name: t.name, price: total,
+        unitPrice: fp, guests,
+        img: t.img, location: t.fullLocation || t.location,
+        departure: dep, returnDate: retDate.toISOString().split('T')[0],
+        duration: t.duration,
+      }));
+      location.href = 'booking.html';
+    }
 
-// Restore draft
-if(draft.departure){
-  const dep=document.getElementById('departure');
-  if(dep) dep.value=draft.departure;
-  onDepartureChange();
-}
-if(draft.guests){
-  const sel=document.getElementById('t-guests');
-  if(sel) sel.value=draft.guests;
-}
-calcTourTotal();
+    loadTourDetail();
+  </script>
+</body>
 
-function doBook(){
-  if(!getToken()){showToast('Vui lòng đăng nhập để đặt tour!','error');setTimeout(()=>location.href='login.html',1000);return;}
-  const dep=document.getElementById('departure')?.value;
-  if(!dep){showToast('Vui lòng chọn ngày khởi hành!','error');return;}
-  const {guests,total}=calcTourTotal();
-  const days=parseDurationDays(t.duration);
-  const retDate=new Date(new Date(dep).getTime()+(days-1)*864e5);
-  localStorage.setItem('tw_booking_draft',JSON.stringify({
-    type:'tour',id:t.id,name:t.title,price:total,
-    unitPrice:fp, guests,
-    img:t.img,location:t.fullLocation,
-    departure:dep,returnDate:retDate.toISOString().split('T')[0],
-    duration:t.duration,
-  }));
-  location.href='booking.html';
-}
-</script>
-</body></html>
+</html>

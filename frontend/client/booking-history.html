@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html><html lang="vi"><head>
+<!DOCTYPE html><html lang="vi"><head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Lịch sử đặt chỗ | TravelWise</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -25,35 +25,74 @@
 <script>
 injectNavbar(); injectFooter();
 if(!getToken()) location.href='login.html';
-const ALL=[...DATA.bookings,...JSON.parse(localStorage.getItem('tw_my_bookings')||'[]')];
-let currentFilter='';
+
+let ALL_BOOKINGS = [];
+let currentFilter = '';
+
+async function loadBookings() {
+  const listEl = document.getElementById('list');
+  const emptyEl = document.getElementById('empty');
+  listEl.innerHTML = '<div class="py-10 text-center text-slate-400 italic">Đang tải lịch sử đặt chỗ...</div>';
+
+  try {
+    const res = await Bookings.myList();
+    if (!res.success) throw new Error(res.message);
+    
+    ALL_BOOKINGS = res.data || [];
+    render();
+  } catch (err) {
+    console.error(err);
+    listEl.innerHTML = `<div class="py-10 text-center text-red-500">Lỗi: ${err.message || 'Không thể tải dữ liệu'}</div>`;
+  }
+}
+
 function filterStatus(s){
   currentFilter=s;
-  document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('bg-emerald-600','text-white');b.classList.add('bg-white','border','border-slate-200','text-slate-600');});
-  const active=document.getElementById('tab-'+(s||'all'));
-  if(active){active.classList.add('bg-emerald-600','text-white');active.classList.remove('bg-white','border','border-slate-200','text-slate-600');}
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.remove('bg-emerald-600','text-white');
+    b.classList.add('bg-white','border','border-slate-200','text-slate-600');
+  });
+  const active=document.getElementById('tab-'+(s==='Confirmed'?'confirmed':s==='Pending'?'pending':s==='Completed'?'done':s==='Cancelled'?'cancelled':'all'));
+  if(active){
+    active.classList.add('bg-emerald-600','text-white');
+    active.classList.remove('bg-white','border','border-slate-200','text-slate-600');
+  }
   render();
 }
+
 function render(){
-  const list=ALL.filter(b=>!currentFilter||b.status===currentFilter);
-  document.getElementById('empty').classList.toggle('hidden',list.length>0);
-  document.getElementById('list').innerHTML=list.map(b=>`
-    <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl ${b.serviceType==='hotel'?'bg-emerald-100':'bg-blue-100'} flex items-center justify-center text-2xl flex-shrink-0">
-        ${b.serviceType==='hotel'?'🏨':'🗺'}
+  const list = ALL_BOOKINGS.filter(b => !currentFilter || b.status === currentFilter);
+  const listEl = document.getElementById('list');
+  const emptyEl = document.getElementById('empty');
+  
+  emptyEl.classList.toggle('hidden', list.length > 0);
+  
+  listEl.innerHTML = list.map(b => {
+    const isHotel = b.service_type === 'hotel';
+    const dateStr = b.created_at ? new Date(b.created_at).toLocaleDateString('vi-VN') : '—';
+    const price = parseFloat(b.total_price) || 0;
+    // Assume price is already in VND from backend or needs conversion if USD
+    const priceFormatted = price < 10000 ? formatVND(price * 23000) : formatVND(price);
+
+    return `
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
+      <div class="w-12 h-12 rounded-xl ${isHotel ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'} flex items-center justify-center text-2xl flex-shrink-0">
+        ${isHotel ? '🏨' : '🗺'}
       </div>
       <div class="flex-1 min-w-0">
-        <p class="font-semibold text-slate-800 truncate">${b.serviceName||b.name}</p>
-        <p class="text-xs text-slate-500 mt-0.5">🗓 ${b.date} · Mã: <span class="font-mono">${b.id}</span></p>
+        <p class="font-semibold text-slate-800 truncate">${b.service_name}</p>
+        <p class="text-xs text-slate-500 mt-0.5">🗓 ${dateStr} · Mã: <span class="font-mono font-bold">${b.code || b.id}</span></p>
       </div>
       <div class="text-right flex-shrink-0">
-        <p class="font-bold text-slate-800 mb-1">$${b.price}</p>
+        <p class="font-bold text-slate-800 mb-1">${priceFormatted}</p>
         ${bookingBadge(b.status)}
       </div>
     </div>
-  `).join('');
+    `;
+  }).join('');
 }
-render();
+
+loadBookings();
 </script>
 </body></html>
 

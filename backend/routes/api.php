@@ -53,6 +53,13 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/refresh', [AuthController::class, 'refresh']);
     });
 
+    // ── Client: Bookings ──────────────────────────────────
+    Route::prefix('client')->group(function () {
+        Route::get('/bookings',     [\App\Http\Controllers\Api\BookingController::class, 'index']);
+        Route::get('/bookings/{id}', [\App\Http\Controllers\Api\BookingController::class, 'show']);
+        Route::post('/bookings',    [\App\Http\Controllers\Api\BookingController::class, 'store']);
+    });
+
     // ── Admin: Destinations ──────────────────────────────
     Route::prefix('admin')->group(function () {
         Route::get('/destinations',                      [DestinationController::class, 'index']);

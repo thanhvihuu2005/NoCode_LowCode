@@ -153,49 +153,54 @@ function fmtDateDMY(iso) {
 
 injectNavbar(); injectFooter();
 const bk = JSON.parse(localStorage.getItem('tw_last_booking') || '{}');
-if(bk.id){
-  document.getElementById('bk-id').textContent = bk.id;
-  document.getElementById('bk-name').textContent = bk.name || '—';
-  document.getElementById('bk-date').textContent = bk.date || '—';
+  if (bk.code || bk.id) {
+    document.getElementById('bk-id').textContent = bk.code || bk.id;
+    document.getElementById('bk-name').textContent = bk.service_name || bk.name || '—';
+    document.getElementById('bk-date').textContent = bk.created_at ? fmtDateDMY(bk.created_at) : (bk.date || '—');
 
-  const priceParsed = parseFloat(bk.price) || 0;
-  const totalVND = priceParsed < 10000 ? priceParsed * 23000 : priceParsed;
-  document.getElementById('bk-price').textContent = formatVNDCustom(totalVND);
+    const priceParsed = parseFloat(bk.total_price || bk.price) || 0;
+    const totalVND = priceParsed < 10000 ? priceParsed * 23000 : priceParsed;
+    document.getElementById('bk-price').textContent = formatVNDCustom(totalVND);
 
-  // Hotel dates
-  if (bk.type === 'hotel' && (bk.checkin || bk.checkout)) {
-    document.getElementById('row-checkin').style.display = 'flex';
-    document.getElementById('bk-checkin').textContent = fmtDateDMY(bk.checkin);
-    document.getElementById('row-checkout').style.display = 'flex';
-    document.getElementById('bk-checkout').textContent = fmtDateDMY(bk.checkout);
-  }
+    const isHotel = (bk.service_type || bk.type) === 'hotel';
+    const isTour = (bk.service_type || bk.type) === 'tour';
 
-  // Tour dates
-  if (bk.type === 'tour' && (bk.departure || bk.returnDate)) {
-    document.getElementById('row-departure').style.display = 'flex';
-    document.getElementById('bk-departure').textContent = fmtDateDMY(bk.departure);
-    document.getElementById('row-return').style.display = 'flex';
-    document.getElementById('bk-return').textContent = fmtDateDMY(bk.returnDate);
-  }
+    // Dates mapping
+    const start = bk.check_in_date || bk.checkin || bk.departure;
+    const end = bk.check_out_date || bk.checkout || bk.returnDate;
 
-  // Guests
-  const guestCount = bk.guests || (bk.guests && typeof bk.guests === 'object' ? (bk.guests.adults || 0) + (bk.guests.children || 0) : null);
-  document.getElementById('bk-guests').textContent = guestCount ? `${guestCount} người` : '—';
+    if (isHotel && (start || end)) {
+      document.getElementById('row-checkin').style.display = 'flex';
+      document.getElementById('bk-checkin').textContent = fmtDateDMY(start);
+      document.getElementById('row-checkout').style.display = 'flex';
+      document.getElementById('bk-checkout').textContent = fmtDateDMY(end);
+    }
 
-  // Payment
-  document.getElementById('bk-payment').textContent = bk.payment || 'Thẻ tín dụng / Ghi nợ';
+    if (isTour && (start || end)) {
+      document.getElementById('row-departure').style.display = 'flex';
+      document.getElementById('bk-departure').textContent = fmtDateDMY(start);
+      document.getElementById('row-return').style.display = 'flex';
+      document.getElementById('bk-return').textContent = fmtDateDMY(end);
+    }
+
+    // Guests
+    const guestCount = bk.guests || null;
+    document.getElementById('bk-guests').textContent = guestCount ? `${guestCount} người` : '—';
+
+    // Payment
+    document.getElementById('bk-payment').textContent = bk.payment_method || bk.payment || 'Thẻ tín dụng / Ghi nợ';
 
   // QR
   const qrData = encodeURIComponent(`TravelWise Bill\nID: ${bk.id}\nService: ${bk.name}\nTotal: ${formatVNDCustom(totalVND)}\nPayment: ${bk.payment || 'Card'}`);
   document.getElementById('bk-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}&color=10b981`;
 
   // Upsell
-  const isHotel = bk.type === 'hotel';
+  const isHotelUpsell = bk.type === 'hotel';
   
   const upsellSection = document.getElementById('upsell-section');
   upsellSection.style.display = 'block';
 
-  if (isHotel) {
+  if (isHotelUpsell) {
      document.getElementById('upsell-title').textContent = 'Khám phá ngay: Các Tour nổi bật gần chỗ nghỉ';
      document.getElementById('upsell-desc').textContent = 'Nâng tầm trải nghiệm với tour du lịch hấp dẫn, đón trả tận nơi.';
      document.getElementById('upsell-name').textContent = 'Tour Vịnh Hạ Long 1 Ngày VIP - Đón tại KS';
