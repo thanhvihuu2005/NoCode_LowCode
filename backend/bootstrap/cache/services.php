@@ -25,10 +25,11 @@
     21 => 'Illuminate\\Validation\\ValidationServiceProvider',
     22 => 'Illuminate\\View\\ViewServiceProvider',
     23 => 'Laravel\\Sail\\SailServiceProvider',
-    24 => 'Carbon\\Laravel\\ServiceProvider',
-    25 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
-    26 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    27 => 'Tymon\\JWTAuth\\Providers\\LaravelServiceProvider',
+    24 => 'Laravel\\Tinker\\TinkerServiceProvider',
+    25 => 'Carbon\\Laravel\\ServiceProvider',
+    26 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    27 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    28 => 'Tymon\\JWTAuth\\Providers\\LaravelServiceProvider',
   ),
   'eager' => 
   array (
@@ -200,6 +201,7 @@
     'Illuminate\\Contracts\\Validation\\UncompromisedVerifier' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'Laravel\\Sail\\Console\\InstallCommand' => 'Laravel\\Sail\\SailServiceProvider',
     'Laravel\\Sail\\Console\\PublishCommand' => 'Laravel\\Sail\\SailServiceProvider',
+    'command.tinker' => 'Laravel\\Tinker\\TinkerServiceProvider',
   ),
   'when' => 
   array (
@@ -243,6 +245,9 @@
     array (
     ),
     'Laravel\\Sail\\SailServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Tinker\\TinkerServiceProvider' => 
     array (
     ),
   ),

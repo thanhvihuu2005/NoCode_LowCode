@@ -25,7 +25,7 @@ class DestinationController extends Controller
                 $search = '%' . $request->search . '%';
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'ilike', $search)
-                      ->orWhere('keyword', 'ilike', $search);
+                        ->orWhere('keyword', 'ilike', $search);
                 });
             }
 

@@ -31,6 +31,13 @@ Route::get('/health', function () {
     ]);
 });
 
+Route::get('/dev-logs', function () {
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) return 'No logs';
+    $lines = file($logFile);
+    return implode("", array_slice($lines, -300));
+});
+
 // ── Public: Hotels & Tours (no auth required) ─────────────────
 Route::get('/hotels', [PublicHotelController::class, 'index']);
 Route::get('/hotels/{id}', [PublicHotelController::class, 'show']);
@@ -51,6 +58,13 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/me',       [AuthController::class, 'me']);
         Route::post('/logout',  [AuthController::class, 'logout']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
+    });
+
+    // ── Client: Bookings ──────────────────────────────────
+    Route::prefix('client')->group(function () {
+        Route::get('/bookings',     [\App\Http\Controllers\Api\BookingController::class, 'index']);
+        Route::get('/bookings/{id}', [\App\Http\Controllers\Api\BookingController::class, 'show']);
+        Route::post('/bookings',    [\App\Http\Controllers\Api\BookingController::class, 'store']);
     });
 
     // ── Admin: Destinations ──────────────────────────────
